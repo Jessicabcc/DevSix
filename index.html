@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Agendamento - Início</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark">
+
+    <div id="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast toast-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <header class="navbar glass-effect">
+        <div class="logo">
+            <a href="{{ url_for('index') }}" class="logo-link">
+                <h2>AGENDAMENTO DE SALAS</h2>
+            </a>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}" class="btn-nav">Início</a>
+            {% if usuario_logado %}
+                {% if tipo_usuario == 'Professor' %}
+                    <a href="{{ url_for('minhas_reservas') }}" class="btn-nav">Minhas Reservas</a>
+                {% endif %}
+                <span class="user-info">
+                    <span class="user-avatar">{{ usuario_logado[0]|upper }}</span>
+                    {{ usuario_logado }}
+                </span>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn-login">Login</a>
+                <a href="{{ url_for('registro') }}" class="btn-registro">Cadastrar</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <section class="hero-section">
+            <h1 class="hero-title">Reserve seu Espaço Acadêmico</h1>
+            <p class="hero-subtitle">Selecione um dos prédios abaixo para visualizar e agendar salas de aula e laboratórios.</p>
+        </section>
+
+        <section>
+            <div class="grid-predios">
+                {% for key, predio in predios.items() %}
+                    <a href="{{ url_for('ver_predio', id_predio=key) }}" class="card-item">
+                        <div class="card-item-header">
+                            <span class="emoji-translucido">{{ predio.emoji }}</span>
+                            <span style="color: var(--accent-gold); font-weight: bold; margin-left: 8px;">{{ predio.salas|length }} Salas disponíveis</span>
+                        </div>
+                        <h3>{{ predio.nome }}</h3>
+                        <p>Clique para consultar o mapa de salas e realizar reservas no {{ predio.nome }}.</p>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER COMPLETO -->
+    <footer class="rodape">
+        <div class="rodape-coluna brand">
+            <div class="rodape-logo">
+                <span class="logo-pequeno">CENTRO UNIVERSITÁRIO</span><br>
+                <span class="logo-grande">UNISAPIENS</span>
+            </div>
+            <p class="rodape-endereco">
+                <strong>CAMPUS JD. DAS MANGUEIRAS</strong><br>
+                RUA PAULO FREIRE, 4767 - PORTO VELHO
+            </p>
+            <div class="redes-sociais">
+                <a href="https://www.instagram.com/centrounisapiens/" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.facebook.com/faculdadeunisapiens" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.youtube.com/@centrounisapiens" target="_blank"><i class="fab fa-youtube"></i></a>
+                <a href="https://www.google.com/maps/place/FACULDADE+UNISAPIENS+-+SAPIENS/@-8.7523286,-63.8707672,17z" target="_blank"><i class="fas fa-map-marker-alt"></i></a>
+            </div>
+        </div>
+        <div class="rodape-coluna links">
+            <h3>A Faculdade</h3>
+            <ul>
+                <li><a href="#">PORTAL DO PROFESSOR</a></li>
+                <li><a href="#">OUVIDORIA</a></li>
+                <li><a href="#">FALE CONOSCO</a></li>
+            </ul>
+        </div>
+        <div class="rodape-coluna links">
+            <h3>Ensino</h3>
+            <ul>
+                <li><a href="https://faculdadesapiens.edu.br/tipos/graduacao/" target="_blank">PRESENCIAL</a></li>
+                <li><a href="https://faculdadesapiens.edu.br/tipos/pos-graduacao/" target="_blank">PÓS-GRADUAÇÃO</a></li>
+                <li><a href="https://faculdadesapiens.edu.br/biblioteca/" target="_blank">BIBLIOTECA</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach(t => {
+                t.style.opacity = '0';
+                setTimeout(() => t.remove(), 300);
+            });
+        }, 4000);
+    </script>
+</body>
+</html>
