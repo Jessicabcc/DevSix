@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acessar Sistema</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark">
+
+    <div id="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast toast-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="auth-container">
+        <div class="auth-card glass-effect">
+            <div class="auth-header">
+                <h2>Bem-vindo de volta</h2>
+                <p>Insira suas credenciais para continuar</p>
+            </div>
+
+            <form action="{{ url_for('login') }}" method="POST">
+                <div class="form-group">
+                    <label for="usuario">Usuário ou E-mail</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="usuario" name="usuario" placeholder="Digite seu usuário ou e-mail" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-auth-submit">Entrar no Sistema</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Ainda não tem conta? <a href="{{ url_for('registro') }}">Cadastre-se</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach(t => {
+                t.style.opacity = '0';
+                setTimeout(() => t.remove(), 300);
+            });
+        }, 4000);
+    </script>
+</body>
+</html>
