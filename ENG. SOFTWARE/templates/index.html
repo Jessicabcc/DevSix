@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Agendamento - Início</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark">
+
+    <div id="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast toast-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <header class="navbar glass-effect">
+        <div class="logo">
+            <a href="{{ url_for('index') }}" class="logo-link">
+                <h2>AGENDAMENTO DE SALAS</h2>
+            </a>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}" class="btn-nav">Início</a>
+            {% if usuario_logado %}
+                {% if tipo_usuario == 'Administrador' %}
+                    <a href="{{ url_for('painel_admin') }}" class="btn-nav" style="color: var(--accent-gold);">Painel Admin</a>
+                {% endif %}
+                {% if tipo_usuario == 'Professor' %}
+                    <a href="{{ url_for('minhas_reservas') }}" class="btn-nav">Minhas Reservas</a>
+                    <a href="{{ url_for('notificacoes') }}" class="btn-nav">Notificações</a>
+                {% endif %}
+                <span class="user-info">
+                    <span class="user-avatar">{{ usuario_logado[0]|upper }}</span>
+                    {{ usuario_logado }}
+                </span>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn-login">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <section class="hero-section">
+            <h1 class="hero-title">Reserve seu Espaço Acadêmico</h1>
+            <p class="hero-subtitle">Selecione um dos prédios abaixo para visualizar e agendar salas de aula.</p>
+        </section>
+
+        <section style="margin-bottom: 60px;">
+            <div class="grid-predios">
+                {% for key, predio in predios.items() %}
+                    <a href="{{ url_for('ver_predio', id_predio=key) }}" class="card-item">
+                        <div class="card-item-header">
+                            <span class="emoji-translucido">{{ predio.emoji }}</span>
+                            <span style="color: var(--accent-gold); font-weight: bold; margin-left: auto;">{{ predio.salas|length }} Salas</span>
+                        </div>
+                        <h3>{{ predio.nome }}</h3>
+                        <p>Clique para consultar o mapa de salas e realizar reservas no {{ predio.nome }}.</p>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="historico-section">
+            <h2 class="hero-title" style="font-size: 1.8rem; text-align: left; margin-bottom: 25px;">Histórico de Reservas</h2>
+            
+            <div class="grid-reservas">
+                {% for r in reservas %}
+                    {% if r.status != 'Rejeitado' %}
+                    <div class="reserva-card glass-effect">
+                        <div class="reserva-card-header">
+                            <h3>{{ r.sala }}</h3>
+                            <span class="badge-status status-{{ r.status|lower }}">{{ r.status }}</span>
+                        </div>
+                        <p><strong>Professor:</strong> {{ r.professor }}</p>
+                        <p><strong>Data:</strong> {{ r.data }} | {{ r.turno }}</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);"><i class="fas fa-map-marker-alt"></i> {{ r.predio_nome }}</p>
+                        
+                        {% if usuario_logado and tipo_usuario == 'Professor' and r.professor != usuario_logado and r.status == 'Aprovado' %}
+                            <button class="btn-troca" onclick="abrirModalTroca('{{ r.id_reserva }}', '{{ r.sala }}', '{{ r.data }}', '{{ r.professor }}')">
+                                <i class="fas fa-exchange-alt"></i> Propor Troca de Sala
+                            </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+
+        <div class="overlay-agendamento" id="overlayTroca">
+            <div class="painel-agendamento" style="grid-template-columns: 1fr;">
+                <div class="detalhes-reserva">
+                    <div class="header-modal">
+                        <h2>Propor Troca de Sala</h2>
+                        <button class="btn-fechar" onclick="fecharModalTroca()">&times;</button>
+                    </div>
+                    <p style="color: var(--text-muted); margin-bottom: 20px;">Você está propondo uma troca para a sala <strong id="troca_sala_nome" style="color: white;"></strong> no dia <strong id="troca_sala_data" style="color: white;"></strong> com o(a) Prof. <strong id="troca_sala_prof" style="color: white;"></strong>.</p>
+                    
+                    <form action="{{ url_for('solicitar_troca') }}" method="POST">
+                        <input type="hidden" name="id_reserva_alvo" id="input_id_alvo" value="">
+                        
+                        <div class="form-group">
+                            <label>Selecione qual das SUAS reservas você deseja oferecer em troca:</label>
+                            <div class="input-wrapper">
+                                <select name="minha_reserva_id" required>
+                                    <option value="" disabled selected>Escolha sua reserva...</option>
+                                    {% for mr in minhas_aprovadas %}
+                                        <option value="{{ mr.id_reserva }}">{{ mr.sala }} ({{ mr.data }} - {{ mr.turno }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn-cancelar" onclick="fecharModalTroca()">Cancelar</button>
+                            <button type="submit" class="btn-confirmar-agendamento" {% if not minhas_aprovadas %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}>Enviar Proposta</button>
+                        </div>
+                        {% if not minhas_aprovadas %}
+                            <p style="color: var(--danger); font-size: 0.85rem; margin-top: 10px;">Você precisa ter pelo menos uma reserva aprovada para propor uma troca.</p>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="rodape">
+        <div class="rodape-coluna brand">
+            <div class="rodape-logo">
+                <span class="logo-pequeno">CENTRO UNIVERSITÁRIO</span><br>
+                <span class="logo-grande">UNISAPIENS</span>
+            </div>
+            <p class="rodape-endereco">
+                <strong>CAMPUS JD. DAS MANGUEIRAS</strong><br>
+                RUA PAULO FREIRE, 4767 - PORTO VELHO
+            </p>
+            <div class="redes-sociais">
+                <a href="https://www.instagram.com/centrounisapiens/" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.facebook.com/faculdadeunisapiens" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.youtube.com/@centrounisapiens" target="_blank"><i class="fab fa-youtube"></i></a>
+                <a href="https://www.google.com/maps/place/FACULDADE+UNISAPIENS+-+SAPIENS/@-8.7523286,-63.8707672,17z" target="_blank"><i class="fas fa-map-marker-alt"></i></a>
+            </div>
+        </div>
+        <div class="rodape-coluna links">
+            <h3>A Faculdade</h3>
+            <ul>
+                <li><a href="#">PORTAL DO PROFESSOR</a></li>
+                <li><a href="#">OUVIDORIA</a></li>
+                <li><a href="#">FALE CONOSCO</a></li>
+            </ul>
+        </div>
+        <div class="rodape-coluna links">
+            <h3>Ensino</h3>
+            <ul>
+                <li><a href="https://faculdadesapiens.edu.br/tipos/graduacao/" target="_blank">PRESENCIAL</a></li>
+                <li><a href="https://faculdadesapiens.edu.br/tipos/pos-graduacao/" target="_blank">PÓS-GRADUAÇÃO</a></li>
+                <li><a href="https://faculdadesapiens.edu.br/biblioteca/" target="_blank">BIBLIOTECA</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+        function abrirModalTroca(idReserva, sala, data, professor) {
+            document.getElementById('input_id_alvo').value = idReserva;
+            document.getElementById('troca_sala_nome').innerText = sala;
+            document.getElementById('troca_sala_data').innerText = data;
+            document.getElementById('troca_sala_prof').innerText = professor;
+            document.getElementById('overlayTroca').classList.add('active');
+        }
+
+        function fecharModalTroca() {
+            document.getElementById('overlayTroca').classList.remove('active');
+        }
+
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach(t => {
+                t.style.opacity = '0';
+                setTimeout(() => t.remove(), 300);
+            });
+        }, 4000);
+    </script>
+</body>
+</html>
