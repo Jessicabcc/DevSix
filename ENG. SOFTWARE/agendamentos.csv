@@ -1,5 +1,0 @@
-id_reserva,predio,sala,data,turno,professor,email,status
-e3182ac2-bb1c-46ae-a768-e5debf0402fd,anexo_2,Sala 34,2026-08-25,Noite (19h às 22h),Prof. Jiraia,jiraia@gmail.com,Aprovado
-c5c76b20-c435-4937-be21-88ce75d77266,anexo_2,Sala 34,2026-09-03,Tarde (14h às 18h),Prof. Jiraia,jiraia@gmail.com,Aprovado
-ac07e38f-bed4-4c52-b37e-1aa17fa0179d,anexo_1,Sala 20,2026-08-26,Manhã (08h às 12h),Tomate,tomatec2v@gmail.com,Aprovado
-2d36b4fa-0e11-47a8-a055-b42d6180ec8b,anexo_1,Sala 8,2026-08-31,Noite (19h às 22h),Professora Saori,saori@gmail.com,Aprovado
