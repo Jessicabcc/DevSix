@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Administrador - UniSapiens</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark">
+    <div id="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast toast-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <header class="navbar glass-effect">
+        <div class="logo">
+            <a href="{{ url_for('index') }}" class="logo-link"><h2>PAINEL ADMIN</h2></a>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}" class="btn-nav">Início</a>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+        </nav>
+    </header>
+
+    <main class="main-content" style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; align-items: flex-start;">
+        
+        <!-- BLOCO 1: Gerar Acessos -->
+        <div class="auth-card glass-effect" style="max-width: 400px; text-align: center;">
+            <div class="auth-header">
+                <h2>Gerar Acessos</h2>
+                <p>Crie links temporários para registrar a equipe.</p>
+            </div>
+            
+            <form action="{{ url_for('painel_admin') }}" method="POST" style="margin-bottom: 10px;">
+                <input type="hidden" name="tipo_conta" value="Professor">
+                <button type="submit" class="btn-auth-submit" style="background: var(--accent-gold); color: #000;">Gerar Convite: Professor</button>
+            </form>
+            <form action="{{ url_for('painel_admin') }}" method="POST">
+                <input type="hidden" name="tipo_conta" value="Administrador">
+                <button type="submit" class="btn-auth-submit" style="background: transparent; border: 1px solid var(--accent-gold); color: var(--accent-gold);">Gerar Convite: Administrador</button>
+            </form>
+
+            {% if link_convite %}
+            <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid var(--border-color);">
+                <p style="color: white; margin-bottom: 5px; font-size: 1rem;">Convite para <strong>{{ tipo_convite_gerado }}</strong></p>
+                <p style="color: var(--danger); font-size: 0.85rem;"><i class="fas fa-clock"></i> Expira em 15 minutos</p>
+                <div style="background: white; padding: 10px; border-radius: 10px; display: inline-block; margin: 15px 0;">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ link_convite }}" alt="QR Code">
+                </div>
+                <div class="input-wrapper">
+                    <input type="text" value="{{ link_convite }}" readonly onclick="this.select()" style="text-align: center; color: var(--accent-gold);">
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- BLOCO 2: Aprovações -->
+        <div class="auth-card glass-effect" style="flex: 1; min-width: 350px;">
+            <div class="auth-header">
+                <h2>Aprovações Pendentes</h2>
+                <p>Gerencie as solicitações de reserva de salas.</p>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for r in reservas_pendentes %}
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="color: white; font-size: 1.1rem;">{{ r.sala }}</strong> <br>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">{{ r.data }} - {{ r.turno }}</span><br>
+                        <span style="font-size: 0.85rem; color: var(--accent-blue);">Prof: {{ r.professor }}</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="{{ url_for('acao_reserva', id_reserva=r.id_reserva, acao='aprovar') }}" style="background: rgba(16, 185, 129, 0.2); color: var(--success); padding: 10px 15px; border-radius: 8px; text-decoration: none; border: 1px solid rgba(16,185,129,0.5); transition: 0.3s;"><i class="fas fa-check"></i></a>
+                        <a href="{{ url_for('acao_reserva', id_reserva=r.id_reserva, acao='rejeitar') }}" style="background: rgba(239, 68, 68, 0.2); color: var(--danger); padding: 10px 15px; border-radius: 8px; text-decoration: none; border: 1px solid rgba(239,68,68,0.5); transition: 0.3s;"><i class="fas fa-times"></i></a>
+                    </div>
+                </div>
+                {% else %}
+                <p style="text-align: center; color: var(--text-muted); margin-top: 20px;">Nenhuma solicitação pendente.</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- BLOCO 3: Criar Novas Salas -->
+        <div class="auth-card glass-effect" style="flex: 1; min-width: 350px;">
+            <div class="auth-header">
+                <h2>Adicionar Sala</h2>
+                <p>Crie novas salas e defina suas observações.</p>
+            </div>
+            <form action="{{ url_for('nova_sala') }}" method="POST">
+                <div class="form-group">
+                    <label>Prédio Localizado</label>
+                    <div class="input-wrapper">
+                        <select name="predio" required>
+                            {% for key, p in predios.items() %}
+                                <option value="{{ key }}">{{ p.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nome da Sala</label>
+                    <div class="input-wrapper">
+                        <input type="text" name="nome_sala" placeholder="Ex: Laboratório 3" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observações da Sala</label>
+                    <div class="input-wrapper">
+                        <textarea name="observacoes" placeholder="Ex: Capacidade 30 alunos, possui projetor, ar-condicionado..." required></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn-auth-submit" style="background: var(--accent-blue);">Criar Sala no Sistema</button>
+            </form>
+        </div>
+
+    </main>
+    <script>
+        setTimeout(() => { document.querySelectorAll('.toast').forEach(t => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }); }, 4000);
+    </script>
+</body>
+</html>
