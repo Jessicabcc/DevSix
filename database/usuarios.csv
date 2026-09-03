@@ -1,0 +1,4 @@
+nome,senha,tipo,status
+admin,admin123,Administrador,Offline
+Joao,joao123,Professor,Online
+teste,joao1234,Administrador,Online
