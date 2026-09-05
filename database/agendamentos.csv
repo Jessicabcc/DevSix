@@ -1,1 +1,4 @@
-id_reserva,nome_sala,data,turno,professor,status
+id_reserva,nome_sala,data,turno,professor,statusj
+c221d914-0536-4543-8081-9ad186a4bff1,Laboratório de Informática 01,2026-09-01,Matutino,rafa.sec,Rejeitado
+03f54453-05bc-4c9b-844f-65d5d5da5f15,Laboratório de Informática 01,2026-09-04,Matutino,Prof. Girafales,Aprovado
+db38d644-6b1a-46d0-8f2e-e4a966129e58,Sala de aula 03,2026-09-04,Vespertino,Prof. Madruga,Aprovado

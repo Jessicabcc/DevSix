@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import uuid
-from database.db_manager import get_data, save_data
+from database.db_manager import get_data, save_data, add_user, delete_user, SUPORTE_TI
 
 def render():
     st.header("🏛️ Painel do Administrador - UniSapiens")
@@ -12,7 +12,7 @@ def render():
     with tab1:
         st.subheader("Cadastrar Nova Sala")
         with st.form("form_sala"):
-            predio = st.selectbox("Prédio", ["Central", "Anexo 1", "Anexo 2"])
+            predio = st.selectbox("Tipo da Sala", ["Salas de aula", "Salas de Atividade Física", "Salas de Metodologia Ativa", "Laboratórios"])
             nome_sala = st.text_input("Nome da Sala")
             observacoes = st.text_area("Observações (Equipamentos, capacidade, etc.)")
             submit_sala = st.form_submit_button("Criar Sala")
@@ -71,9 +71,9 @@ def render():
                 
                 c1, c2 = st.columns(2)
                 if c1.button("Aprovar Troca", key=f"t_apr_{row['id_troca']}"):
-                    # Inverter professores
-                    df_agend.loc[df_agend['id_reserva'] == row['id_reserva_1'], 'professor'] = res2['professor']
-                    df_agend.loc[df_agend['id_reserva'] == row['id_reserva_2'], 'professor'] = res1['professor']
+                    # Troca somente as salas, mantendo cada reserva com seu professor.
+                    df_agend.loc[df_agend['id_reserva'] == row['id_reserva_1'], 'nome_sala'] = res2['nome_sala']
+                    df_agend.loc[df_agend['id_reserva'] == row['id_reserva_2'], 'nome_sala'] = res1['nome_sala']
                     df_trocas.loc[df_trocas['id_troca'] == row['id_troca'], 'status'] = 'Aprovado'
                     save_data('agendamentos', df_agend)
                     save_data('trocas', df_trocas)
@@ -88,6 +88,26 @@ def render():
     # --- TAB 4: USUÁRIOS ONLINE/OFFLINE ---
     with tab4:
         st.subheader("Painel de Controle de Usuários")
+        st.markdown("#### Cadastrar Usuário")
+        with st.form("form_professor"):
+            nome_professor = st.text_input("Nome do Usuário")
+            senha_professor = st.text_input("Definir Senha", type="password")
+            tipos_permitidos = ["Professor"]
+            if st.session_state['usuario'] == SUPORTE_TI:
+                tipos_permitidos.append("Secretário")
+            tipo_usuario = st.selectbox("Tipo de Usuário", tipos_permitidos)
+            cadastrar_professor = st.form_submit_button("Cadastrar Usuário", type="primary")
+
+            if cadastrar_professor:
+                if not nome_professor.strip() or not senha_professor:
+                    st.error("Informe um usuário e uma senha.")
+                elif add_user(nome_professor.strip(), senha_professor, tipo_usuario, st.session_state['usuario']):
+                    st.success(f"{tipo_usuario} cadastrado com sucesso.")
+                    st.rerun()
+                else:
+                    st.error("Usuário já existe no sistema.")
+
+        st.markdown("#### Usuários cadastrados")
         filtro = st.radio("Filtrar por Status", ["Todos", "Online", "Offline"], horizontal=True)
         df_users = get_data('usuarios')
         
@@ -95,3 +115,14 @@ def render():
             df_users = df_users[df_users['status'] == filtro]
             
         st.dataframe(df_users[['nome', 'tipo', 'status']], use_container_width=True, hide_index=True)
+
+        professores = df_users[df_users['tipo'].isin(['Professor', 'Secretário'])]
+        if not professores.empty:
+            st.markdown("#### Excluir Usuário")
+            for _, professor in professores.iterrows():
+                col_nome, col_acao = st.columns([5, 1])
+                col_nome.write(f"{professor['nome']} ({professor['status']})")
+                if col_acao.button("Excluir", key=f"excluir_{professor['nome']}"):
+                    if delete_user(professor['nome'], st.session_state['usuario']):
+                        st.success(f"Professor {professor['nome']} excluído.")
+                        st.rerun()

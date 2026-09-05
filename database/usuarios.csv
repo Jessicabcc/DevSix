@@ -1,4 +1,5 @@
 nome,senha,tipo,status
-admin,admin123,Administrador,Offline
-Joao,joao123,Professor,Online
-teste,joao1234,Administrador,Online
+Suporte.ti,admin123,Administrador,Online
+rafa.sec,rafa.sec,Secretário,Offline
+Prof. Madruga,123456,Professor,Offline
+Prof. Girafales,123456,Professor,Online

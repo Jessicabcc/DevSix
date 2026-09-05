@@ -4,7 +4,8 @@ import uuid
 from database.db_manager import get_data, save_data
 
 def render():
-    st.header(f"🎓 Bem-vindo(a), Prof. {st.session_state['usuario']}")
+    prefixo = "Prof." if st.session_state['tipo'] == 'Professor' else ""
+    st.header(f"🎓 Bem-vindo(a), {prefixo} {st.session_state['usuario']}")
     
     tab1, tab2 = st.tabs(["Agendar Sala", "Minhas Reservas e Trocas"])
     
@@ -17,8 +18,12 @@ def render():
         if df_salas.empty:
             st.warning("Nenhuma sala cadastrada pelos administradores ainda.")
         else:
+            tipos_sala = sorted(df_salas['predio'].dropna().unique().tolist())
+            tipo_sala = st.selectbox("Tipo da Sala", tipos_sala, key="tipo_sala_agendamento")
+            salas_do_tipo = df_salas[df_salas['predio'] == tipo_sala]
+
             with st.form("form_reserva"):
-                sala_selecionada = st.selectbox("Escolha a Sala", df_salas['nome_sala'].tolist())
+                sala_selecionada = st.selectbox("Escolha a Sala", salas_do_tipo['nome_sala'].tolist())
                 data_reserva = st.date_input("Data do Agendamento")
                 turno = st.selectbox("Turno", ["Matutino", "Vespertino", "Noturno"])
                 
@@ -82,3 +87,4 @@ def render():
                     save_data('trocas', pd.concat([df_trocas, nova_troca], ignore_index=True))
                     st.success("A proposta de troca foi enviada ao Administrador para análise!")
                     st.rerun()
+
