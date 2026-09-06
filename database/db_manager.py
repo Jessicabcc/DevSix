@@ -12,6 +12,37 @@ FILES = {
     'trocas': f'{DB_PATH}trocas.csv'
 }
 
+REQUIRED_COLUMNS = {
+    'usuarios': ['nome', 'senha', 'tipo', 'status'],
+    'salas': ['id_sala', 'predio', 'nome_sala', 'observacoes'],
+    'agendamentos': ['id_reserva', 'nome_sala', 'data', 'turno', 'professor', 'status'],
+    'trocas': ['id_troca', 'id_reserva_1', 'id_reserva_2', 'status'],
+}
+
+COLUMN_ALIASES = {
+    'agendamentos': {'statusj': 'status'}
+}
+
+
+def normalize_table(table, df):
+    if df is None or df.empty and table not in FILES:
+        return df
+
+    aliases = COLUMN_ALIASES.get(table, {})
+    if aliases:
+        df = df.rename(columns=aliases)
+
+    required = REQUIRED_COLUMNS.get(table, [])
+    for column in required:
+        if column not in df.columns:
+            if column == 'status' and table == 'agendamentos':
+                df[column] = 'Pendente'
+            else:
+                df[column] = ''
+
+    return df
+
+
 def init_db():
     if not os.path.exists(DB_PATH):
         os.makedirs(DB_PATH)
@@ -39,10 +70,67 @@ def init_db():
     if not os.path.exists(FILES['trocas']):
         pd.DataFrame(columns=['id_troca', 'id_reserva_1', 'id_reserva_2', 'status']).to_csv(FILES['trocas'], index=False)
 
+def _deduplicate_trocas(df):
+    if df.empty or 'id_reserva_1' not in df.columns or 'id_reserva_2' not in df.columns:
+        return df
+
+    registros = []
+    vistos = set()
+    for registro in reversed(df.to_dict('records')):
+        chave = tuple(sorted([
+            str(registro.get('id_reserva_1', '')),
+            str(registro.get('id_reserva_2', ''))
+        ]))
+        if chave in vistos:
+            continue
+        vistos.add(chave)
+        registros.append(registro)
+
+    registros.reverse()
+    return pd.DataFrame(registros, columns=df.columns)
+
+
+def troca_invalida(reserva_1, reserva_2):
+    return (
+        str(reserva_1.get('data', '')).strip() == str(reserva_2.get('data', '')).strip() and
+        str(reserva_1.get('turno', '')).strip() == str(reserva_2.get('turno', '')).strip() and
+        str(reserva_1.get('nome_sala', '')).strip() == str(reserva_2.get('nome_sala', '')).strip()
+    )
+
+
+def troca_ja_registrada(id_reserva_1, id_reserva_2, df_trocas=None):
+    if df_trocas is None:
+        df_trocas = get_data('trocas')
+
+    if df_trocas.empty:
+        return False
+
+    id1 = str(id_reserva_1)
+    id2 = str(id_reserva_2)
+    par = tuple(sorted([id1, id2]))
+
+    for _, troca in df_trocas.iterrows():
+        atual = tuple(sorted([str(troca.get('id_reserva_1', '')), str(troca.get('id_reserva_2', ''))]))
+        if atual == par:
+            return True
+
+    return False
+
+
 def get_data(table):
-    return pd.read_csv(FILES[table])
+    df = pd.read_csv(FILES[table])
+    df = normalize_table(table, df)
+    if table == 'agendamentos' and 'status' in df.columns and 'statusj' in df.columns:
+        df = df.drop(columns=['statusj'], errors='ignore')
+    if table == 'trocas':
+        df = _deduplicate_trocas(df)
+    return df
+
 
 def save_data(table, df):
+    df = normalize_table(table, df)
+    if table == 'trocas':
+        df = _deduplicate_trocas(df)
     df.to_csv(FILES[table], index=False)
 
 def add_user(nome, senha, tipo, criado_por=None):

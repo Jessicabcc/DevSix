@@ -1,12 +1,13 @@
 import streamlit as st
 import pandas as pd
 import uuid
-from database.db_manager import get_data, save_data, add_user, delete_user, SUPORTE_TI
+import time
+from database.db_manager import get_data, save_data, add_user, delete_user, SUPORTE_TI, troca_invalida, troca_ja_registrada
 
 def render():
     st.header("🏛️ Painel do Administrador - UniSapiens")
     
-    tab1, tab2, tab3, tab4 = st.tabs(["Nova Sala", "Aprovar Reservas", "Aprovar Trocas", "Status de Usuários"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nova Sala", "Aprovar Reservas", "Aprovar Trocas", "Histórico de Aprovações", "Status de Usuários"])
     
     # --- TAB 1: CRIAR SALAS ---
     with tab1:
@@ -44,10 +45,12 @@ def render():
                 if col2.button("Aprovar", key=f"apr_{row['id_reserva']}"):
                     df_agend.loc[df_agend['id_reserva'] == row['id_reserva'], 'status'] = 'Aprovado'
                     save_data('agendamentos', df_agend)
+                    time.sleep(5)
                     st.rerun()
                 if col3.button("Rejeitar", key=f"rej_{row['id_reserva']}"):
                     df_agend.loc[df_agend['id_reserva'] == row['id_reserva'], 'status'] = 'Rejeitado'
                     save_data('agendamentos', df_agend)
+                    time.sleep(5)
                     st.rerun()
 
     # --- TAB 3: APROVAR TROCAS ---
@@ -71,6 +74,16 @@ def render():
                 
                 c1, c2 = st.columns(2)
                 if c1.button("Aprovar Troca", key=f"t_apr_{row['id_troca']}"):
+                    if troca_invalida(res1.to_dict(), res2.to_dict()):
+                        st.warning("Troca inválida: não é possível aprovar reservas com a mesma sala, mesmo dia e mesmo turno.")
+                        time.sleep(5)
+                        st.rerun()
+                        return
+                    if troca_ja_registrada(row['id_reserva_1'], row['id_reserva_2'], df_trocas):
+                        st.warning("Essa troca já foi registrada e não pode ser aprovada novamente.")
+                        time.sleep(5)
+                        st.rerun()
+                        return
                     # Troca somente as salas, mantendo cada reserva com seu professor.
                     df_agend.loc[df_agend['id_reserva'] == row['id_reserva_1'], 'nome_sala'] = res2['nome_sala']
                     df_agend.loc[df_agend['id_reserva'] == row['id_reserva_2'], 'nome_sala'] = res1['nome_sala']
@@ -78,6 +91,7 @@ def render():
                     save_data('agendamentos', df_agend)
                     save_data('trocas', df_trocas)
                     st.success("Troca aprovada com sucesso!")
+                    time.sleep(5)
                     st.rerun()
                     
                 if c2.button("Rejeitar Troca", key=f"t_rej_{row['id_troca']}"):
@@ -85,8 +99,63 @@ def render():
                     save_data('trocas', df_trocas)
                     st.rerun()
 
-    # --- TAB 4: USUÁRIOS ONLINE/OFFLINE ---
+    # --- TAB 4: HISTÓRICO DE APROVAÇÕES ---
     with tab4:
+        st.subheader("Histórico de Aprovações")
+        st.markdown("#### Reservas")
+        df_agend_historico = get_data('agendamentos')
+        reservas_processadas = df_agend_historico[
+            df_agend_historico['status'].isin(['Aprovado', 'Rejeitado'])
+        ]
+        if reservas_processadas.empty:
+            st.info("Nenhuma reserva aprovada ou rejeitada ainda.")
+        else:
+            st.dataframe(
+                reservas_processadas[
+                    ['nome_sala', 'data', 'turno', 'professor', 'status']
+                ].sort_index(ascending=False),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+        st.markdown("#### Trocas")
+        df_trocas_historico = get_data('trocas')
+        trocas_processadas = df_trocas_historico[
+            df_trocas_historico['status'].isin(['Aprovado', 'Rejeitado'])
+        ]
+        if trocas_processadas.empty:
+            st.info("Nenhuma troca aprovada ou rejeitada ainda.")
+        else:
+            reservas_por_id = df_agend_historico.set_index('id_reserva')
+            historico_trocas = []
+            pares_vistos = set()
+            for _, troca in trocas_processadas.iterrows():
+                par = tuple(sorted([str(troca['id_reserva_1']), str(troca['id_reserva_2'])]))
+                if par in pares_vistos:
+                    continue
+                pares_vistos.add(par)
+                reserva_1 = reservas_por_id.loc[troca['id_reserva_1']]
+                reserva_2 = reservas_por_id.loc[troca['id_reserva_2']]
+                historico_trocas.append({
+                    'Professor 1': reserva_1['professor'],
+                    'Professor 2': reserva_2['professor'],
+                    'Sala 1': reserva_1['nome_sala'],
+                    'Sala 2': reserva_2['nome_sala'],
+                    'Data Sala 1': reserva_1['data'],
+                    'Data Sala 2': reserva_2['data'],
+                    'Turno 1': reserva_1['turno'],
+                    'Turno 2': reserva_2['turno'],
+                    'Status': troca['status'],
+                })
+
+            st.dataframe(
+                pd.DataFrame(historico_trocas),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    # --- TAB 5: USUÁRIOS ONLINE/OFFLINE ---
+    with tab5:
         st.subheader("Painel de Controle de Usuários")
         st.markdown("#### Cadastrar Usuário")
         with st.form("form_professor"):
@@ -103,9 +172,12 @@ def render():
                     st.error("Informe um usuário e uma senha.")
                 elif add_user(nome_professor.strip(), senha_professor, tipo_usuario, st.session_state['usuario']):
                     st.success(f"{tipo_usuario} cadastrado com sucesso.")
+                    time.sleep(5)
                     st.rerun()
                 else:
                     st.error("Usuário já existe no sistema.")
+                    time.sleep(5)
+                    st.rerun()
 
         st.markdown("#### Usuários cadastrados")
         filtro = st.radio("Filtrar por Status", ["Todos", "Online", "Offline"], horizontal=True)
@@ -125,4 +197,5 @@ def render():
                 if col_acao.button("Excluir", key=f"excluir_{professor['nome']}"):
                     if delete_user(professor['nome'], st.session_state['usuario']):
                         st.success(f"Professor {professor['nome']} excluído.")
+                        time.sleep(5)
                         st.rerun()

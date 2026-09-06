@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-from database.db_manager import get_data, save_data, add_user, delete_user
+import time
+from database.db_manager import get_data, save_data, add_user, delete_user, troca_invalida, troca_ja_registrada
 
 
 def render():
@@ -30,10 +31,12 @@ def render():
 				if col_aprovar.button("Aprovar", key=f"sec_apr_{reserva['id_reserva']}"):
 					df_agend.loc[df_agend['id_reserva'] == reserva['id_reserva'], 'status'] = 'Aprovado'
 					save_data('agendamentos', df_agend)
+					time.sleep(5)
 					st.rerun()
 				if col_rejeitar.button("Rejeitar", key=f"sec_rej_{reserva['id_reserva']}"):
 					df_agend.loc[df_agend['id_reserva'] == reserva['id_reserva'], 'status'] = 'Rejeitado'
 					save_data('agendamentos', df_agend)
+					time.sleep(5)
 					st.rerun()
 
 	with tab_trocas:
@@ -61,6 +64,16 @@ def render():
 
 				col_aprovar, col_rejeitar = st.columns(2)
 				if col_aprovar.button("Aprovar Troca", key=f"sec_t_apr_{troca['id_troca']}"):
+					if troca_invalida(reserva_1.to_dict(), reserva_2.to_dict()):
+						st.warning("Troca inválida: não é possível aprovar reservas com a mesma sala, mesmo dia e mesmo turno.")
+						time.sleep(5)
+						st.rerun()
+						return
+					if troca_ja_registrada(troca['id_reserva_1'], troca['id_reserva_2'], df_trocas):
+						st.warning("Essa troca já foi registrada e não pode ser aprovada novamente.")
+						time.sleep(5)
+						st.rerun()
+						return
 					df_agend.loc[df_agend['id_reserva'] == troca['id_reserva_1'], 'nome_sala'] = reserva_2['nome_sala']
 					df_agend.loc[df_agend['id_reserva'] == troca['id_reserva_2'], 'nome_sala'] = reserva_1['nome_sala']
 					df_trocas.loc[df_trocas['id_troca'] == troca['id_troca'], 'status'] = 'Aprovado'
@@ -80,7 +93,7 @@ def render():
 			df_agend_historico['status'].isin(['Aprovado', 'Rejeitado'])
 		]
 		if reservas_processadas.empty:
-			st.info("Nenhuma reserva aprovada ou rejeitada ainda.")
+			st.info("Nenhuma reserva atual ainda.")
 		else:
 			st.dataframe(
 				reservas_processadas[
@@ -96,11 +109,16 @@ def render():
 			df_trocas_historico['status'].isin(['Aprovado', 'Rejeitado'])
 		]
 		if trocas_processadas.empty:
-			st.info("Nenhuma troca aprovada ou rejeitada ainda.")
+			st.info("Nenhuma troca atual ainda.")
 		else:
 			reservas_por_id = df_agend_historico.set_index('id_reserva')
 			historico_trocas = []
+			pares_vistos = set()
 			for _, troca in trocas_processadas.iterrows():
+				par = tuple(sorted([str(troca['id_reserva_1']), str(troca['id_reserva_2'])]))
+				if par in pares_vistos:
+					continue
+				pares_vistos.add(par)
 				reserva_1 = reservas_por_id.loc[troca['id_reserva_1']]
 				reserva_2 = reservas_por_id.loc[troca['id_reserva_2']]
 				historico_trocas.append({
@@ -110,6 +128,8 @@ def render():
 					'Sala 2': reserva_2['nome_sala'],
 					'Data Sala 1': reserva_1['data'],
 					'Data Sala 2': reserva_2['data'],
+					'Turno 1': reserva_1['turno'],
+					'Turno 2': reserva_2['turno'],
 					'Status': troca['status'],
 				})
 
@@ -129,11 +149,16 @@ def render():
 			if cadastrar:
 				if not nome_professor.strip() or not senha_professor:
 					st.error("Informe um usuário e uma senha.")
+					time.sleep(5)
+					st.rerun()
 				elif add_user(nome_professor.strip(), senha_professor, "Professor", st.session_state['usuario']):
 					st.success("Professor cadastrado com sucesso.")
+					time.sleep(5)
 					st.rerun()
 				else:
 					st.error("Usuário já existe ou você não tem permissão para esta ação.")
+					time.sleep(5)
+					st.rerun()
 
 		professores = get_data('usuarios')
 		professores = professores[professores['tipo'] == 'Professor']
@@ -146,4 +171,5 @@ def render():
 				if col_acao.button("Excluir", key=f"secretario_excluir_{professor['nome']}"):
 					if delete_user(professor['nome'], st.session_state['usuario']):
 						st.success("Professor excluído com sucesso.")
+						time.sleep(5)
 						st.rerun()

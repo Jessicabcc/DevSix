@@ -1,2 +1,5 @@
 id_troca,id_reserva_1,id_reserva_2,status
-d3a9a8bb-e7b4-4a2a-ac1f-da79af970525,03f54453-05bc-4c9b-844f-65d5d5da5f15,db38d644-6b1a-46d0-8f2e-e4a966129e58,Aprovado
+cec64a39-444e-4ebd-afc3-4004d29388bc,03f54453-05bc-4c9b-844f-65d5d5da5f15,db38d644-6b1a-46d0-8f2e-e4a966129e58,Aprovado
+f133ca0f-a93a-41a7-b395-e938c6eddbb4,c6ff31cb-3f12-40ad-a645-95ff81c0eee7,6d5164cd-ff07-443a-98d5-c84ebc067656,Aprovado
+04cfe6d8-5cce-4aa8-a65b-3eb5d92054cc,c6ff31cb-3f12-40ad-a645-95ff81c0eee7,03f54453-05bc-4c9b-844f-65d5d5da5f15,Rejeitado
+22847a60-5d06-48a6-9a2c-0200fe584cbf,6d5164cd-ff07-443a-98d5-c84ebc067656,03f54453-05bc-4c9b-844f-65d5d5da5f15,Pendente

@@ -1,4 +1,10 @@
-id_reserva,nome_sala,data,turno,professor,statusj
+id_reserva,nome_sala,data,turno,professor,status
 c221d914-0536-4543-8081-9ad186a4bff1,Laboratório de Informática 01,2026-09-01,Matutino,rafa.sec,Rejeitado
 03f54453-05bc-4c9b-844f-65d5d5da5f15,Laboratório de Informática 01,2026-09-04,Matutino,Prof. Girafales,Aprovado
-db38d644-6b1a-46d0-8f2e-e4a966129e58,Sala de aula 03,2026-09-04,Vespertino,Prof. Madruga,Aprovado
+db38d644-6b1a-46d0-8f2e-e4a966129e58,Laboratório de Informática 01,2026-09-04,Vespertino,Prof. Madruga,Aprovado
+63a8c0fc-cfd2-47ef-9dd6-04ec78c8f8e8,Laboratório Maker ,2026-09-07,Noturno,Prof. Girafales,Rejeitado
+f0bbbba6-a1bd-4c9e-846d-9a5cde87fdd0,Laboratório de Informática 01,2026-09-05,Matutino,Prof. Girafales,Rejeitado
+6d5164cd-ff07-443a-98d5-c84ebc067656,Laboratório de Informática 01,2026-09-05,Matutino,Girafales,Aprovado
+c6ff31cb-3f12-40ad-a645-95ff81c0eee7,Sala de aula 03,2026-09-05,Vespertino,Endriel,Aprovado
+f6bf3105-bbec-40ce-af1f-ff14c0158dd5,Laboratório de Informática 01,2026-09-06,Matutino,Endriel,Aprovado
+49ea253e-574b-4c10-8f6a-fac366b20ea7,Laboratório de Informática 01,2026-09-04,Matutino,Endriel,Rejeitado

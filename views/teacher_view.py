@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
 import uuid
-from database.db_manager import get_data, save_data
+import time
+from datetime import date
+from database.db_manager import get_data, save_data, troca_invalida, troca_ja_registrada
 
 def render():
     prefixo = "Prof." if st.session_state['tipo'] == 'Professor' else ""
@@ -24,31 +26,35 @@ def render():
 
             with st.form("form_reserva"):
                 sala_selecionada = st.selectbox("Escolha a Sala", salas_do_tipo['nome_sala'].tolist())
-                data_reserva = st.date_input("Data do Agendamento")
+                data_reserva = st.date_input("Data do Agendamento", min_value=date.today())
                 turno = st.selectbox("Turno", ["Matutino", "Vespertino", "Noturno"])
                 
                 detalhes_sala = df_salas[df_salas['nome_sala'] == sala_selecionada].iloc[0]
-                st.caption(f"**Prédio:** {detalhes_sala['predio']} | **Obs:** {detalhes_sala['observacoes']}")
+                st.caption(f"**Tipo da Sala:** {detalhes_sala['predio']} | **Obs:** {detalhes_sala['observacoes']}")
                 
                 if st.form_submit_button("Solicitar Reserva", type="primary"):
-                    ocupado = df_agend[(df_agend['nome_sala'] == sala_selecionada) & 
-                                       (df_agend['data'] == str(data_reserva)) & 
-                                       (df_agend['turno'] == turno) & 
-                                       (df_agend['status'].isin(['Aprovado', 'Pendente']))]
-                    if not ocupado.empty:
-                        st.error("Esta sala já está reservada ou pendente para este dia e turno.")
+                    if data_reserva < date.today():
+                        st.error("Não é permitido agendar salas em datas passadas. Escolha hoje ou uma data futura.")
                     else:
-                        nova_res = pd.DataFrame([{
-                            'id_reserva': str(uuid.uuid4()),
-                            'nome_sala': sala_selecionada,
-                            'data': str(data_reserva),
-                            'turno': turno,
-                            'professor': st.session_state['usuario'],
-                            'status': 'Pendente'
-                        }])
-                        save_data('agendamentos', pd.concat([df_agend, nova_res], ignore_index=True))
-                        st.success("Sua reserva foi enviada para aprovação do Administrador!")
-                        st.rerun()
+                        ocupado = df_agend[(df_agend['nome_sala'] == sala_selecionada) & 
+                                           (df_agend['data'] == str(data_reserva)) & 
+                                           (df_agend['turno'] == turno) & 
+                                           (df_agend['status'].isin(['Aprovado', 'Pendente']))]
+                        if not ocupado.empty:
+                            st.error("Esta sala já está reservada ou pendente para este dia e turno.")
+                        else:
+                            nova_res = pd.DataFrame([{
+                                'id_reserva': str(uuid.uuid4()),
+                                'nome_sala': sala_selecionada,
+                                'data': str(data_reserva),
+                                'turno': turno,
+                                'professor': st.session_state['usuario'],
+                                'status': 'Pendente'
+                            }])
+                            save_data('agendamentos', pd.concat([df_agend, nova_res], ignore_index=True))
+                            st.success("Sua reserva foi enviada para aprovação do Administrador!")
+                            time.sleep(5)
+                            st.rerun()
 
     # --- TAB 2: MINHAS RESERVAS E SOLICITAR TROCA ---
     with tab2:
@@ -76,8 +82,20 @@ def render():
                     
                     id_reserva_1 = minhas_aprovadas.loc[idx_minha, 'id_reserva']
                     id_reserva_2 = outras_aprovadas.loc[idx_alvo, 'id_reserva']
-                    
+
+                    reserva_1 = minhas_aprovadas.loc[idx_minha].to_dict()
+                    reserva_2 = outras_aprovadas.loc[idx_alvo].to_dict()
+                    if troca_invalida(reserva_1, reserva_2):
+                        st.warning("Troca inválida: não é possível trocar reservas com a mesma sala, mesmo dia e mesmo turno.")
+                        time.sleep(5)
+                        return
+
                     df_trocas = get_data('trocas')
+                    if troca_ja_registrada(id_reserva_1, id_reserva_2, df_trocas):
+                        st.warning("Essa troca já foi registrada e não pode ser enviada novamente.")
+                        time.sleep(5)
+                        return
+
                     nova_troca = pd.DataFrame([{
                         'id_troca': str(uuid.uuid4()),
                         'id_reserva_1': id_reserva_1,
@@ -86,5 +104,6 @@ def render():
                     }])
                     save_data('trocas', pd.concat([df_trocas, nova_troca], ignore_index=True))
                     st.success("A proposta de troca foi enviada ao Administrador para análise!")
+                    time.sleep(5)
                     st.rerun()
 
