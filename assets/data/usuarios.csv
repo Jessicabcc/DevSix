@@ -2,4 +2,5 @@ nome,senha,tipo,status
 Suporte.ti,admin123,Administrador,Online
 rafa.sec,rafa.sec,Secretário,Offline
 Endriel,123456,Professor,Offline
-Girafales,123456,Professor,Online
+Girafales,123456,Professor,Offline
+madruga,123456,Professor,Offline

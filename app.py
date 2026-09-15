@@ -1,5 +1,6 @@
 import streamlit as st
-from database.db_manager import init_db, get_data, set_user_status
+from models.db_manager import init_db, get_data
+from controllers.auth_controller import authenticate, login, logout as controller_logout
 from views import admin_view, secretario_view, teacher_view
 
 st.set_page_config(page_title="Agendamentos UniSapiens", page_icon="🏫", layout="wide")
@@ -23,10 +24,7 @@ if 'tipo' not in st.session_state:
     st.session_state['tipo'] = ''
 
 def logout():
-    set_user_status(st.session_state['usuario'], 'Offline')
-    st.session_state['logged_in'] = False
-    st.session_state['usuario'] = ''
-    st.session_state['tipo'] = ''
+    st.session_state.update(controller_logout(st.session_state['usuario']))
     st.rerun()
 
 if not st.session_state['logged_in']:
@@ -39,13 +37,9 @@ if not st.session_state['logged_in']:
             usuario = st.text_input("Usuário")
             senha = st.text_input("Senha", type="password")
             if st.form_submit_button("Entrar", type="primary"):
-                df = get_data('usuarios')
-                user_row = df[(df['nome'] == usuario) & (df['senha'] == senha)]
-                if not user_row.empty:
-                    st.session_state['logged_in'] = True
-                    st.session_state['usuario'] = usuario
-                    st.session_state['tipo'] = user_row.iloc[0]['tipo']
-                    set_user_status(usuario, 'Online')
+                tipo = authenticate(usuario, senha)
+                if tipo:
+                    st.session_state.update(login(usuario, tipo))
                     st.rerun()
                 else:
                     st.error("Credenciais inválidas.")

@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 # Caminhos dos arquivos
-DB_PATH = 'database/'
+DB_PATH = 'assets/data/'
 SUPORTE_TI = 'Suporte.ti'
 FILES = {
     'usuarios': f'{DB_PATH}usuarios.csv',

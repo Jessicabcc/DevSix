@@ -2,7 +2,10 @@ import streamlit as st
 import pandas as pd
 import uuid
 import time
-from database.db_manager import get_data, save_data, add_user, delete_user, SUPORTE_TI, troca_invalida, troca_ja_registrada
+from models.db_manager import get_data, save_data, SUPORTE_TI
+from controllers.exchange_controller import approve_exchange, update_exchange_status
+from controllers.reservation_controller import update_reservation_status
+from controllers.user_controller import create_user, remove_user
 
 def render():
     st.header("🏛️ Painel do Administrador - UniSapiens")
@@ -43,13 +46,11 @@ def render():
                 col1, col2, col3 = st.columns([3, 1, 1])
                 col1.write(f"**{row['nome_sala']}** - {row['data']} ({row['turno']}) | Prof: {row['professor']}")
                 if col2.button("Aprovar", key=f"apr_{row['id_reserva']}"):
-                    df_agend.loc[df_agend['id_reserva'] == row['id_reserva'], 'status'] = 'Aprovado'
-                    save_data('agendamentos', df_agend)
+                    update_reservation_status(row['id_reserva'], 'Aprovado')
                     time.sleep(5)
                     st.rerun()
                 if col3.button("Rejeitar", key=f"rej_{row['id_reserva']}"):
-                    df_agend.loc[df_agend['id_reserva'] == row['id_reserva'], 'status'] = 'Rejeitado'
-                    save_data('agendamentos', df_agend)
+                    update_reservation_status(row['id_reserva'], 'Rejeitado')
                     time.sleep(5)
                     st.rerun()
 
@@ -74,29 +75,23 @@ def render():
                 
                 c1, c2 = st.columns(2)
                 if c1.button("Aprovar Troca", key=f"t_apr_{row['id_troca']}"):
-                    if troca_invalida(res1.to_dict(), res2.to_dict()):
+                    resultado = approve_exchange(row, res1.to_dict(), res2.to_dict())
+                    if resultado == 'invalida':
                         st.warning("Troca inválida: não é possível aprovar reservas com a mesma sala, mesmo dia e mesmo turno.")
                         time.sleep(5)
                         st.rerun()
                         return
-                    if troca_ja_registrada(row['id_reserva_1'], row['id_reserva_2'], df_trocas):
+                    if resultado == 'duplicada':
                         st.warning("Essa troca já foi registrada e não pode ser aprovada novamente.")
                         time.sleep(5)
                         st.rerun()
                         return
-                    # Troca somente as salas, mantendo cada reserva com seu professor.
-                    df_agend.loc[df_agend['id_reserva'] == row['id_reserva_1'], 'nome_sala'] = res2['nome_sala']
-                    df_agend.loc[df_agend['id_reserva'] == row['id_reserva_2'], 'nome_sala'] = res1['nome_sala']
-                    df_trocas.loc[df_trocas['id_troca'] == row['id_troca'], 'status'] = 'Aprovado'
-                    save_data('agendamentos', df_agend)
-                    save_data('trocas', df_trocas)
                     st.success("Troca aprovada com sucesso!")
                     time.sleep(5)
                     st.rerun()
                     
                 if c2.button("Rejeitar Troca", key=f"t_rej_{row['id_troca']}"):
-                    df_trocas.loc[df_trocas['id_troca'] == row['id_troca'], 'status'] = 'Rejeitado'
-                    save_data('trocas', df_trocas)
+                    update_exchange_status(row['id_troca'], 'Rejeitado')
                     st.rerun()
 
     # --- TAB 4: HISTÓRICO DE APROVAÇÕES ---
@@ -170,7 +165,7 @@ def render():
             if cadastrar_professor:
                 if not nome_professor.strip() or not senha_professor:
                     st.error("Informe um usuário e uma senha.")
-                elif add_user(nome_professor.strip(), senha_professor, tipo_usuario, st.session_state['usuario']):
+                elif create_user(nome_professor, senha_professor, tipo_usuario, st.session_state['usuario']):
                     st.success(f"{tipo_usuario} cadastrado com sucesso.")
                     time.sleep(5)
                     st.rerun()
@@ -195,7 +190,7 @@ def render():
                 col_nome, col_acao = st.columns([5, 1])
                 col_nome.write(f"{professor['nome']} ({professor['status']})")
                 if col_acao.button("Excluir", key=f"excluir_{professor['nome']}"):
-                    if delete_user(professor['nome'], st.session_state['usuario']):
+                    if remove_user(professor['nome'], st.session_state['usuario']):
                         st.success(f"Professor {professor['nome']} excluído.")
                         time.sleep(5)
                         st.rerun()
