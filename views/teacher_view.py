@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import uuid
 import time
+from pathlib import Path
 from datetime import date
 from models.db_manager import get_data
 from controllers.exchange_controller import create_exchange

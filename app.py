@@ -1,4 +1,5 @@
 import streamlit as st
+from pathlib import Path
 from models.db_manager import init_db, get_data
 from controllers.auth_controller import authenticate, login, logout as controller_logout
 from views import admin_view, secretario_view, teacher_view
@@ -9,10 +10,11 @@ st.set_page_config(page_title="Agendamentos UniSapiens", page_icon="🏫", layou
 init_db()
 
 # Carrega o CSS customizado mantendo a interface escura e translúcida
+css_path = Path(__file__).resolve().parent / "style" / "style.css"
 try:
-    with open("style.css", "r", encoding="utf-8") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-except:
+    if css_path.exists():
+        st.markdown(f"<style>{css_path.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
+except Exception:
     pass
 
 # Controle de Sessão
@@ -30,7 +32,7 @@ def logout():
 if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
-        st.markdown("<h1 style='text-align: center; color: #fbbf24;'>UniSapiens</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; color: #88CDBD;'>UniSapiens</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center;'>Sistema de Agendamento de Salas</p>", unsafe_allow_html=True)
         
         with st.form("login_form"):

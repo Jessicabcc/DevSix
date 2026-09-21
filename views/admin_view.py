@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import uuid
 import time
+from pathlib import Path
 from models.db_manager import get_data, save_data, SUPORTE_TI
 from controllers.exchange_controller import approve_exchange, update_exchange_status
 from controllers.reservation_controller import update_reservation_status
@@ -177,6 +178,7 @@ def render():
         st.markdown("#### Usuários cadastrados")
         filtro = st.radio("Filtrar por Status", ["Todos", "Online", "Offline"], horizontal=True)
         df_users = get_data('usuarios')
+        key="meu_radio"
         
         if filtro != "Todos":
             df_users = df_users[df_users['status'] == filtro]

@@ -1,54 +1,324 @@
-/* Fundo escuro padrão */
-.stApp {
-    background-color: #07090e;
-    background-image: radial-gradient(circle at top right, rgba(29, 78, 216, 0.08), transparent 45%),
-                      radial-gradient(circle at bottom left, rgba(251, 191, 36, 0.04), transparent 45%);
-    color: #f3f4f6;
+:root {
+    --bg: #0b1016;
+    --bg-2: #121b25;
+    --panel: rgba(17, 24, 39, 0.78);
+    --panel-strong: rgba(11, 16, 22, 0.9);
+    --input-bg: rgba(15, 23, 42, 0.8);
+    --accent: #88CDBD;
+    --accent-strong: #63b9a6;
+    --accent-soft: rgba(136, 205, 189, 0.18);
+    --text: #f3f4f6;
+    --muted: rgba(255,255,255,0.72);
+    --border: rgba(136, 205, 189, 0.28);
 }
 
-/* Painéis com efeito Glassmorphism (translúcidos) */
-div[data-testid="stForm"], div[data-testid="stExpander"], div[data-testid="stTabs"] {
-    background: rgba(17, 24, 39, 0.6) !important;
+.stApp {
+    background: linear-gradient(180deg, #0b1016 0%, #0e1720 100%) !important;
+    color: var(--text) !important;
+}
+
+.stApp * {
+    box-sizing: border-box;
+}
+
+header[data-testid="stHeader"],
+div[data-testid="stHeader"] {
+    background: rgba(11, 16, 22, 0.85) !important;
+    border-bottom: 1px solid var(--border) !important;
+    box-shadow: 0 1px 0 rgba(136, 205, 189, 0.18) !important;
+}
+
+
+
+div[data-testid="stTabList"] button[role="tab"],
+div[data-testid="stTabList"] [role="tab"],
+button[role="tab"],
+[role="tab"] {
+    color: var(--muted) !important;
+    border-top: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Apenas o indicador do tab ativo em verde claro */
+div[data-testid="stTabList"] .react-aria-SelectionIndicator,
+div[data-testid="stTabList"] [data-selected="true"] .react-aria-SelectionIndicator,
+div[data-testid="stTabList"] button[role="tab"][aria-selected="true"] .react-aria-SelectionIndicator,
+button[role="tab"][aria-selected="true"] .react-aria-SelectionIndicator,
+[role="tab"][aria-selected="true"] .react-aria-SelectionIndicator,
+[role="tab"] .react-aria-SelectionIndicator,
+div[role="tab"] .react-aria-SelectionIndicator,
+button[role="tab"] .react-aria-SelectionIndicator {
+    background-color: #88CDBD !important;
+    background: #88CDBD !important;
+    border-color: #88CDBD !important;
+    box-shadow: none !important;
+    outline: none !important;
+    height: 3px !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    position: absolute !important;
+    border-radius: 2px !important;
+}
+
+div[data-testid="stTabList"] [role="tab"][aria-selected="true"],
+div[data-testid="stTabList"] button[role="tab"][aria-selected="true"],
+button[role="tab"][aria-selected="true"],
+[role="tab"][aria-selected="true"] {
+    color: var(--accent) !important;
+    background: rgba(136, 205, 189, 0.04) !important;
+    position: relative !important;
+}
+
+div[data-testid="stTabList"] button[role="tab"][aria-selected="true"],
+div[data-testid="stTabList"] [role="tab"][aria-selected="true"],
+button[role="tab"][aria-selected="true"],
+[role="tab"][aria-selected="true"] {
+    color: var(--accent) !important;
+    background: rgba(136, 205, 189, 0.04) !important;
+    position: relative !important;
+}
+
+.stTabs [role="tab"],
+.stTabs [role="tab"][aria-selected="true"] {
+    color: var(--text) !important;
+    border-color: rgba(136, 205, 189, 0.2) !important;
+}
+
+.stTabs [role="tab"][aria-selected="true"] {
+    color: var(--accent) !important;
+    background: rgba(136, 205, 189, 0.04) !important;
+}
+
+/* Painéis e blocos */
+div[data-testid="stForm"],
+div[data-testid="stExpander"],
+div[data-testid="stTabs"],
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    background: var(--panel) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid var(--border) !important;
     border-radius: 16px !important;
-    padding: 1.5rem !important;
+    padding: 1.25rem !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18) !important;
 }
 
-/* Transições e cores vibrantes nos botões */
+/* Botões */
 button[data-testid="baseButton-secondary"] {
     background-color: transparent !important;
-    border: 1px solid #3b82f6 !important;
-    color: #3b82f6 !important;
-    border-radius: 8px !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid var(--accent) !important;
+    color: var(--accent) !important;
+    border-radius: 10px !important;
+    transition: all 0.25s ease !important;
 }
 
 button[data-testid="baseButton-secondary"]:hover {
-    background-color: #3b82f6 !important;
-    color: white !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35) !important;
+    background-color: var(--accent) !important;
+    color: #071d1a !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 8px 20px rgba(136, 205, 189, 0.22) !important;
 }
 
-button[data-testid="baseButton-primary"] {
-    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%) !important;
-    color: #000 !important;
-    font-weight: bold !important;
+button[data-testid="baseButton-primary"],
+button[data-testid="stBaseButton-primaryFormSubmit"],
+button[kind="primary"],
+button[kind="primaryFormSubmit"],
+button[type="submit"],
+.stButton > button,
+.stForm button {
+    font-weight: 700 !important;
     border: none !important;
-    border-radius: 8px !important;
-    transition: all 0.3s ease !important;
+    border-radius: 10px !important;
+    transition: all 0.25s ease !important;
 }
 
-button[data-testid="baseButton-primary"]:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4) !important;
+button[data-testid="baseButton-primary"]:hover,
+button[data-testid="stBaseButton-primaryFormSubmit"]:hover,
+button[kind="primary"]:hover,
+button[kind="primaryFormSubmit"]:hover,
+button[type="submit"]:hover,
+.stButton > button:hover {
+    background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%) !important;
+    box-shadow: 0 10px 25px rgba(136, 205, 189, 0.28) !important;
+    transform: translateY(-1px) !important;
+    color: #071d1a !important;
 }
 
-/* Inputs escuros para evitar alteração global para branco */
-div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
-    background-color: rgba(15, 23, 42, 0.7) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    color: white !important;
+/* Inputs e selects */
+div[data-baseweb="input"] > div,
+div[data-baseweb="select"] > div,
+div[data-baseweb="textarea"] > div,
+div[data-baseweb="select"] [role="button"],
+div[data-baseweb="select"] [role="combobox"] {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    color: var(--text) !important;
+}
+
+/* Borda vermelha gerada pelo componente compartilhado do Streamlit */
+.st-emotion-cache-1xcqvn {
+    border-color: #88CDBD !important;
+}
+
+.st-emotion-cache-o1n65:focus-within{
+    border-color: #88CDBD;
+}
+
+.st-emotion-cache-12s3ead[data-focus-within] {
+    border-color: #88CDBD !important;
+    box-shadow: 0 0 0 1px rgba(136, 205, 189, 0.35) !important;
+}
+
+div[data-baseweb="input"] > div:focus-within,
+div[data-baseweb="select"] > div:focus-within,
+div[data-baseweb="textarea"] > div:focus-within,
+div[data-baseweb="select"] [role="button"]:focus,
+div[data-baseweb="select"] [role="button"][aria-expanded="true"] {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 1px rgba(136, 205, 189, 0.35) !important;
+}
+
+div[data-baseweb="select"] [role="option"],
+div[data-baseweb="select"] li,
+div[data-baseweb="select"] ul {
+    background-color: var(--panel-strong) !important;
+    color: var(--text) !important;
+}
+
+div[data-baseweb="select"] [role="option"][aria-selected="true"] {
+    background: rgba(136, 205, 189, 0.12) !important;
+    color: var(--text) !important;
+}
+
+/* Radio e checkboxes */
+div[data-testid="stRadioOption"] {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    transition: all 0.2s ease !important;
+}
+
+div[data-testid="stRadioOption"][data-selected="true"] {
+    background: rgba(136, 205, 189, 0.08) !important;
+    border-color: var(--accent) !important;
+}
+
+/* Indicador circular do radio selecionado gerado pelo Streamlit */
+label[data-testid="stRadioOption"][data-selected="true"] .eqiohyi4,
+label[data-testid="stRadioOption"][data-selected="true"] .st-emotion-cache-he5m1v {
+    background: #88CDBD !important;
+    background-color: #88CDBD !important;
+    border-color: #88CDBD !important;
+}
+
+label[data-testid="stRadioOption"][data-selected="true"] .eqiohyi5,
+label[data-testid="stRadioOption"][data-selected="true"] .st-emotion-cache-16jqfj2 {
+    background: #63b9a6 !important;
+    background-color: #63b9a6 !important;
+}
+
+div[data-testid="stRadioOption"][data-selected="true"] *,
+div[role="radio"][aria-checked="true"],
+div[role="radio"][aria-checked="true"] * {
+    background-color: rgba(136, 205, 189, 0.12) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+div[data-testid="stRadioOption"] input[type="radio"],
+input[type="radio"],
+input[type="checkbox"] {
+    accent-color: var(--accent) !important;
+}
+
+/* Filtro de status (Todos / Online / Offline) */
+div[data-testid="stRadio"] label,
+div[data-testid="stRadio"] input,
+div[data-testid="stRadio"] [data-baseweb="radio"],
+div[data-testid="stRadio"] [role="radio"],
+div[data-testid="stRadio"] [aria-checked="true"],
+div[data-testid="stRadio"] [data-selected="true"] {
+    accent-color: #88CDBD !important;
+    color: #88CDBD !important;
+    border-color: #88CDBD !important;
+}
+
+div[data-testid="stRadio"] [data-checked="true"],
+div[data-testid="stRadio"] [aria-checked="true"] {
+    background-color: rgba(136, 205, 189, 0.12) !important;
+    border-color: #88CDBD !important;
+}
+
+div[data-testid="stRadio"] [role="radio"][aria-checked="true"],
+div[role="radiogroup"] [role="radio"][aria-checked="true"] {
+    background: rgba(136, 205, 189, 0.12) !important;
+    border-color: #88CDBD !important;
+    box-shadow: inset 0 0 0 1px rgba(136, 205, 189, 0.3) !important;
+}
+
+div[data-testid="stRadioOption"] label,
+div[data-testid="stRadioOption"] span,
+div[data-testid="stRadioOption"] p,
+.stRadio label,
+.stCheckbox label {
+    color: var(--text) !important;
+}
+
+/* Alertas */
+div[data-testid="stAlert"],
+div[role="alert"],
+.stAlert,
+.stError,
+.stWarning,
+.stSuccess,
+.stInfo {
+    background: rgba(136, 205, 189, 0.08) !important;
+    border: 1px solid rgba(136, 205, 189, 0.35) !important;
+    border-radius: 10px !important;
+    color: var(--text) !important;
+}
+
+/* Tabela */
+.stDataFrame {
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+/* Textos gerais */
+label, p, li, span, div, h1, h2, h3, h4, h5, h6 {
+    color: var(--text) !important;
+}
+
+small, .stCaption {
+    color: var(--muted) !important;
+}
+
+/* Ajustes de layout */
+div[role="radiogroup"],
+.stRadio {
+    gap: 0.75rem !important;
+}
+
+/* Sobrescrita final do botão de submit do Streamlit (login/entrar) */
+button[data-testid="stBaseButton-primaryFormSubmit"],
+button[kind="primaryFormSubmit"],
+button[data-testid="stBaseButton-primaryFormSubmit"] > div,
+button[data-testid="stBaseButton-primaryFormSubmit"] span {
+    background: linear-gradient(135deg, #88CDBD 0%, #63b9a6 100%) !important;
+    border: none !important;
+    border-color: transparent !important;
+    color: #071d1a !important;
+    box-shadow: none !important;
+}
+
+button[data-testid="stBaseButton-primaryFormSubmit"]:hover,
+button[kind="primaryFormSubmit"]:hover {
+    background: linear-gradient(135deg, #63b9a6 0%, #88CDBD 100%) !important;
+    color: #071d1a !important;
 }

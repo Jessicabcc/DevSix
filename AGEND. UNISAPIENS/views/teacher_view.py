@@ -120,7 +120,7 @@ def render():
         minhas_reservas_todas = df_agend[df_agend['professor'] == st.session_state['usuario']]
         if not minhas_reservas_todas.empty:
             for i, row in minhas_reservas_todas.iterrows():
-                cor = "#fbbf24" if row['status'] == 'Pendente' else ("#69a88d" if row['status'] == 'Aprovado' else "#ef4444")
+                cor = "#fbbf24" if row['status'] == 'Pendente' else ("#69a88d" if row['status'] == 'Aprovado' else "#88CDBD")
                 st.markdown(f"📍 **{row['nome_sala']}** ({row['data']}) - Status: <span style='color:{cor}; font-weight:bold;'>{row['status']}</span>", unsafe_allow_html=True)
         else:
             st.info("Você não possui reservas em andamento.")
