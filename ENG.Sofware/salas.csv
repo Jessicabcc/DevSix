@@ -1,0 +1,90 @@
+id_sala,predio,nome_sala,observacoes,categoria,status
+c582eb44-8453-48c7-ae9a-2956cccd90fd,predio_central,LAB 01,"Capacidade para 25 Alunos 
+Possui 1 Data show 
+Possui computadores.",Laboratorio,Ativa
+82abd7bf-0c20-4de8-bad2-a9ca5e26b9de,predio_central,LAB 02,"Capacidade para 35 alunos 
+Possui 2 Data Shows
+Possui computadores",Laboratorio,Ativa
+1a75873b-de7f-4380-909d-8b25c35e559f,predio_central,Sala Maker,"Capacidade para 35 alunos 
+Possui 1 TV
+Possui 1 Data Show",Laboratorio,Ativa
+7b7eea79-ccbb-4a60-ae7e-d850ed26c680,predio_central,Sala 01,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+45ffbfab-43fc-4ced-9dfa-8038f3f00718,predio_central,Sala 02,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+5023a9e9-0edd-43ae-8afa-cd11dba6f964,predio_central,Sala 03,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+1b8e67ad-613b-4137-91a6-2df21ee08af4,predio_central,Sala 04,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+afce42a9-ae15-4a6d-9336-dbe99371375e,predio_central,Sala 05,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+6a12a669-e8fb-499f-8bbf-8d13b23d87d4,predio_central,Sala 06,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+31d5359e-06b5-4376-b1b5-79a7b741dcdb,predio_central,Sala 07,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+03c71d12-ef29-4b9d-a6db-c45958fc6427,predio_central,Sala 08,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+39750b81-667a-40ef-bfd0-f6c4bcc0293f,predio_central,Sala 09,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+e479f021-f8ce-4756-89d9-e1328a07e93a,predio_central,Sala 10,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+dabb369e-c66d-4f67-83d9-bb77be0e38cb,predio_central,Sala 11,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+83367f2b-586b-43b6-b713-69e0b63f5d9b,predio_central,Sala 12,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+958245bc-0452-465d-890b-920c8626b865,predio_central,Sala 13,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+dd9785cb-82b9-43a0-afa4-4cc4a992fe12,predio_central,Sala 14,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+41c84a50-5929-4615-bb7c-04a8a338b775,predio_central,Sala 15,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+82847b89-e12b-4425-841f-1f9d273a1666,predio_central,Sala 16,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+21aca431-7d68-419e-aa11-d66d2f47a4b6,predio_central,Sala 17,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+7cf37f09-95c4-4aa9-97fd-53eab2e7ec4a,predio_central,Sala 18,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+471d1b91-77c0-4615-a12a-bd460b978b5d,predio_central,Sala 19,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+88e48770-1077-4dc3-ad60-72bcad557e2b,predio_central,Sala 20,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+85bfa12f-f78b-4e2a-84ce-a024bf1094b8,anexo_1,Washington,"Capacidade para 40 alunos 
+Possui 1 Data Show",Normal,Ativa
+8ff06801-112e-4168-a776-3d1c0b5fc97e,anexo_1,Sala Orlando,"Capacidade para 40 alunos 
+Possui 1 Data Show",Normal,Ativa
+49d6ce56-e114-4b4e-a1ce-0ece32c9860d,anexo_1,Sala Irvine,"Capacidade para 40 alunos 
+Possui 1 Data Show",Normal,Ativa
+c85abbe5-1c91-446a-8a2e-158281e04b25,anexo_1,Sala New York,"Capacidade para 40 alunos 
+Possui 1 Data Show",Normal,Ativa
+f14d45a5-47be-44c4-a234-8a1b76f5d1b8,anexo_1,LAB 04,"Capacidade para 30 alunos 
+Possui 1 Data Show
+Possui computadores",Laboratorio,Ativa
+c6e8b350-a9c2-488f-8959-93a8d7a63c19,anexo_1,LAB 05,"Capacidade para 30 alunos 
+Possui 1 Data Show
+Possui computadores",Laboratorio,Ativa
+d6225ea7-6b47-470f-b393-6c44bce935a1,anexo_1,Sala San Diego,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+b031d41d-4bb3-4a31-84ef-f0ebcfba3b9f,anexo_1,Sala Indianápolis,"Capacidade para 30 alunos 
+Possui 1 Data Show",Normal,Ativa
+fcf9c1ab-bc92-4937-bcab-27f00f0fadef,anexo_1,Laboratório multidisciplinar,"Capacidade para 30 alunos 
+Possui 1 Data Show",Metodologia,Ativa
+684cc149-dc99-4870-b21a-6e9eb2ccfe98,anexo_1,Laboratório multidisciplinar 02,"Capacidade para 30 alunos 
+Possui 1 Data Show",Metodologia,Ativa
+119e33d1-c833-48e2-83df-a054610f4baa,anexo_1,Laboratório de enfermagem 01,"Capacidade para 30 alunos 
+Possui equipamentos de enfermagem",Metodologia,Ativa
+2bd2162e-2875-44ec-a0b2-ddde8545aec8,anexo_1,Laboratório de enfermagem 02,"Capacidade para 30 alunos 
+Possui equipamentos de enfermagem",Metodologia,Ativa
+b0b36015-75e9-4815-b9e6-e7e747bf2984,anexo_1,Auditório,Auditório 1 Piso,Metodologia,Ativa
+e5670f4c-6ad6-4283-82c5-1df1f199d6c3,anexo_1,Laboratório multidisciplinar de radiologia,"Capacidade para 30 alunos 
+Possui equipamentos de radiologia",Metodologia,Ativa
+2ef7b98e-91ad-490c-a12b-53eb13a92c46,anexo_1,Laboratório multidisciplinar de odontologia,"Capacidade para 30 alunos 
+Possui equipamentos de odontologia",Metodologia,Ativa
+9a577398-7cb3-4a2b-a943-90588c583ad0,anexo_1,Laboratório de elétrica,"Capacidade para 30 alunos 
+Possui equipamentos elétricos",Laboratorio,Ativa
+a0f7ac5f-9b9a-4b14-aa81-117b47d2bbc3,anexo_1,Laboratórios de fluídos hidráulicos,"Capacidade para 30 alunos 
+Possui equipamentos hidráulicos",Laboratorio,Ativa
+fa08d0f8-b6b7-40e6-aa62-6a0630f44ee2,anexo_1,Laboratório de Solo,"Capacidade para 30 alunos 
+Possui equipamentos que envolvem Cocô",Metodologia,Ativa
+1fc60db4-a593-4466-8a6b-ded82c6e37db,anexo_1,Laboratório de concreto molhado,"Capacidade para 30 alunos 
+Possui concretos molhados kkkk",Laboratorio,Ativa
+6e2baba7-85e5-4ba0-b136-60c7352023ea,predio_central,Piscina,Capacidade ( indeterminado),Quadra,Ativa

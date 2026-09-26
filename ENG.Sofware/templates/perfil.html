@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - UniSapiens</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark">
+
+    <div id="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast toast-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <header class="navbar glass-effect">
+        <div class="logo">
+            <a href="{{ url_for('index') }}" class="logo-link">
+                <h2>MEU PERFIL</h2>
+            </a>
+        </div>
+        <button class="menu-toggle" aria-label="Menu" onclick="this.closest('.navbar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+        <nav>
+            <a href="{{ url_for('index') }}" class="btn-nav">Início</a>
+            {% if tipo_usuario in ['Administrador', 'Coordenador'] %}
+                <a href="{{ url_for('painel_admin') }}" class="btn-nav">Painel Admin</a>
+                <a href="{{ url_for('dashboard_admin') }}" class="btn-nav">Dashboard</a>
+            {% endif %}
+            {% if tipo_usuario == 'Professor' %}
+                <a href="{{ url_for('minhas_reservas') }}" class="btn-nav">Minhas Reservas</a>
+                <a href="{{ url_for('notificacoes') }}" class="btn-nav">Notificações</a>
+            {% endif %}
+            <a href="{{ url_for('perfil') }}" class="btn-nav" style="color: var(--accent-mint);">Meu Perfil</a>
+            <span class="user-info">
+                {% if session.get('foto') %}
+                    <img src="{{ url_for('static', filename='uploads/' + session.get('foto')) }}" class="user-avatar-img" alt="Foto">
+                {% else %}
+                    <span class="user-avatar">{{ usuario_logado[0]|upper }}</span>
+                {% endif %}
+                {{ usuario_logado }}
+            </span>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="auth-card glass-effect perfil-card">
+            <div class="avatar-edit-wrapper">
+                {% if session.get('foto') %}
+                    <img src="{{ url_for('static', filename='uploads/' + session.get('foto')) }}" class="profile-preview-img" alt="Foto de Perfil">
+                {% else %}
+                    <div class="profile-preview-placeholder">{{ usuario_logado[0]|upper }}</div>
+                {% endif %}
+                <form action="{{ url_for('atualizar_perfil') }}" method="POST" enctype="multipart/form-data" id="form-foto">
+                    <input type="hidden" name="nome" value="{{ usuario_logado }}">
+                    <label for="input-foto" class="btn-editar-foto" title="Alterar foto">
+                        <i class="fas fa-pencil-alt"></i>
+                    </label>
+                    <input type="file" id="input-foto" name="foto" accept="image/*" style="display: none;" onchange="document.getElementById('form-foto').submit()">
+                </form>
+            </div>
+
+            <h2 style="color: white; margin-bottom: 4px;">{{ usuario_logado }}</h2>
+            <span class="role-badge">{{ tipo_usuario }}</span>
+
+            <form action="{{ url_for('atualizar_perfil') }}" method="POST" style="margin-top: 30px; text-align: left;">
+                <div class="form-group">
+                    <label>Nome de Exibição</label>
+                    <div class="input-wrapper">
+                        <input type="text" name="nome" value="{{ usuario_logado }}" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-auth-submit" style="background: var(--accent-green);">Salvar Nome</button>
+            </form>
+        </div>
+
+        {% if tipo_usuario == 'Professor' %}
+        <div style="max-width: 900px; margin: 0 auto;">
+            <div class="tabs-perfil">
+                <button type="button" class="btn-tab ativo" onclick="mostrarAba('reservas', this)">
+                    <i class="fas fa-check-circle"></i> Reservas Aprovadas
+                </button>
+                <button type="button" class="btn-tab" onclick="mostrarAba('favoritas', this)">
+                    <i class="fas fa-star"></i> Salas Favoritas
+                </button>
+            </div>
+
+            <div id="aba-reservas" class="aba-conteudo">
+                {% if reservas_aprovadas %}
+                    <div class="grid-reservas">
+                        {% for r in reservas_aprovadas %}
+                            <div class="reserva-card glass-effect">
+                                <div class="reserva-card-header">
+                                    <h3>{{ r.sala }}</h3>
+                                    <span class="badge-status status-aprovado">Aprovado</span>
+                                </div>
+                                <p><strong>Prédio:</strong> {{ r.predio_nome }}</p>
+                                <p><strong>Data:</strong> {{ r.data }} | {{ r.turno }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="text-align: center; color: var(--text-muted);">Você ainda não possui reservas aprovadas.</p>
+                {% endif %}
+            </div>
+
+            <div id="aba-favoritas" class="aba-conteudo" style="display: none;">
+                {% if salas_favoritas %}
+                    <p style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Toque em uma sala favoritada para solicitar um novo agendamento.</p>
+                    <div class="grid-salas">
+                        {% for sala in salas_favoritas %}
+                            {% set bloqueada = sala.status == 'Bloqueada' %}
+                            {% set cat = categorias.get(sala.categoria, {}) %}
+                            <div class="card-sala categoria-{{ sala.categoria|lower }}{% if bloqueada %} sala-bloqueada{% endif %}"
+                                 {% if not bloqueada %}onclick="selecionarSalaFavorita('{{ sala.id_sala }}')"{% endif %}>
+                                <button type="button" class="btn-favorito ativo"
+                                        data-href="{{ url_for('favoritar_sala', id_sala=sala.id_sala) }}"
+                                        onclick="event.stopPropagation(); window.location.href=this.dataset.href;"
+                                        title="Remover dos favoritos">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                                <div class="card-icon-emoji">{{ cat.get('emoji', '📗') }}</div>
+                                <h4>{{ sala.nome_sala }}</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">{{ sala.predio_nome }}</p>
+                                {% if bloqueada %}
+                                    <span class="badge-status status-rejeitado" style="margin-top: 10px; display: inline-block;">Bloqueada</span>
+                                {% else %}
+                                    <p class="dica-agendar"><i class="fas fa-calendar-plus"></i> Toque para agendar</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="text-align: center; color: var(--text-muted);">Você ainda não favoritou nenhuma sala. Clique na estrela dentro de um prédio para favoritar.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Modal de Agendamento a partir dos Favoritos -->
+        <div class="overlay-agendamento" id="overlayAgendamento">
+            <div class="painel-agendamento">
+                <div class="info-sala-selecionada">
+                    <span class="tag-subtitulo">AGENDAMENTO DE SALA</span>
+                    <h1 id="modal_nome_sala">Nome da Sala</h1>
+                    <div class="localizacao-badge">
+                        <i class="fas fa-building"></i>
+                        <span id="modal_predio_nome"></span>
+                    </div>
+                    <p id="modal_observacoes" style="color: var(--text-muted); margin-top: 20px; font-size: 0.9rem; line-height: 1.6;"></p>
+                </div>
+
+                <div class="detalhes-reserva">
+                    <div class="header-modal">
+                        <h2>Reservar Horário</h2>
+                        <button class="btn-fechar" onclick="fecharModal()">&times;</button>
+                    </div>
+
+                    <form action="{{ url_for('salvar_agendamento') }}" method="POST">
+                        <input type="hidden" name="id_predio" id="input_id_predio" value="">
+                        <input type="hidden" name="nome_sala" id="input_nome_sala" value="">
+
+                        <div class="form-group">
+                            <label for="data">Data do Agendamento</label>
+                            <div class="input-wrapper">
+                                <input type="date" id="data" name="data" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="turno">Turno</label>
+                            <div class="input-wrapper">
+                                <select id="turno" name="turno" required>
+                                    <option value="" disabled selected>Selecione o turno...</option>
+                                    <option value="Matutino">Matutino</option>
+                                    <option value="Vespertino">Vespertino</option>
+                                    <option value="Noturno">Noturno</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+                            <button type="submit" class="btn-confirmar-agendamento">Solicitar Reserva</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script type="application/json" id="dados-favoritas">{{ salas_favoritas | tojson }}</script>
+        {% endif %}
+    </main>
+
+    <script>
+        function mostrarAba(nome, btn) {
+            document.querySelectorAll('.aba-conteudo').forEach(function (el) { el.style.display = 'none'; });
+            document.getElementById('aba-' + nome).style.display = 'block';
+            document.querySelectorAll('.btn-tab').forEach(function (b) { b.classList.remove('ativo'); });
+            btn.classList.add('ativo');
+        }
+
+        function fecharModal() {
+            var overlay = document.getElementById('overlayAgendamento');
+            if (overlay) overlay.classList.remove('active');
+        }
+
+        function selecionarSalaFavorita(idSala) {
+            var dadosEl = document.getElementById('dados-favoritas');
+            if (!dadosEl) return;
+            var favoritasInfo = JSON.parse(dadosEl.textContent);
+            var sala = null;
+            for (var i = 0; i < favoritasInfo.length; i++) {
+                if (favoritasInfo[i].id_sala === idSala) {
+                    sala = favoritasInfo[i];
+                    break;
+                }
+            }
+            if (!sala) {
+                console.error('Sala favorita não encontrada:', idSala);
+                return;
+            }
+            document.getElementById('input_id_predio').value = sala.predio;
+            document.getElementById('input_nome_sala').value = sala.nome_sala;
+            document.getElementById('modal_nome_sala').innerText = sala.nome_sala;
+            document.getElementById('modal_predio_nome').innerText = sala.predio_nome;
+            document.getElementById('modal_observacoes').innerText = sala.observacoes || 'Sem observações adicionais.';
+            document.getElementById('overlayAgendamento').classList.add('active');
+        }
+
+        setTimeout(function () {
+            document.querySelectorAll('.toast').forEach(function (t) {
+                t.style.opacity = '0';
+                setTimeout(function () { t.remove(); }, 300);
+            });
+        }, 4000);
+    </script>
+</body>
+</html>

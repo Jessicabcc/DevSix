@@ -1,0 +1,11 @@
+token,usado,expiracao,tipo_conta
+dadd12df-612f-4e92-a44b-16ac9c5cf89f,True,2026-09-25T10:53:59.730898,Professor
+be1b9b9e-9427-410a-93fd-6feafd4bf9a9,False,2026-09-25T13:26:59.518390,Professor
+6e46a7a9-b644-4d69-add1-bd73104bae3e,False,2026-09-25T13:27:05.827289,Coordenador
+67054ed6-58f9-4d14-bebe-3caccb3b3408,False,2026-09-25T13:27:09.717790,Administrador
+aed1a80f-8417-4ff0-9e67-36c8fccb98d2,False,2026-09-25T17:22:38.026344,Administrador
+7937992c-d270-4f01-b65a-20f9827621ed,False,2026-09-25T17:25:35.374223,Administrador
+6be2bba2-54b8-46fb-b0bb-de0691587969,False,2026-09-25T17:25:55.073285,Coordenador
+09eda18f-ef5d-4181-96bc-4c944273a5f1,False,2026-09-25T23:45:20.871759,Professor
+424547ef-f2bc-4aef-b844-c155c6321b5d,False,2026-09-25T23:46:22.260076,Professor
+046c4d9d-a9e5-42ac-a71b-f5f71aacad7f,False,2026-09-26T00:22:51.266190,Professor

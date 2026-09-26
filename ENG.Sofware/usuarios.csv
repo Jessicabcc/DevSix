@@ -1,0 +1,3 @@
+nome,email,senha,tipo,foto
+João Vieira,vieirabotelhojoaovictor@gmail.com,scrypt:32768:8:1$5IBNjntvYGPG2ryv$f0b730dd20aa75c25a38411e628fe272ed3f0f0bda9d96abe36c06247d4aec8d28887391b08dd42b4db8f81b95c0ac76d63cd836c37d1883ff70235501cfe8f5,Administrador,1d34078f-a387-481e-b9b4-289af16c81f1.jpg
+PG do ZAP,vieiraeugenia958@gmail.com,scrypt:32768:8:1$NFNx2SWvI07MxAzP$a832383e222f96e68dc7c4b33d5b53a926638490acf2faafc581fe90950ebc6ff63f438491a5b50eba2fec5da44dcde758eff8b3088ee472974e49f5eab8437b,Professor,3f5fc4b9-17b5-4fa0-a60a-e942070b46d5.jpeg

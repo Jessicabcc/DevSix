@@ -1,0 +1,4 @@
+id_reserva,predio,sala,data,turno,professor,email,status,solicitado_em,responsavel,decidido_em
+2551ce4b-3c90-45af-8bd9-9bceb0ec426a,predio_central,LAB 01,2026-09-29,Noturno,PG do ZAP,vieiraeugenia958@gmail.com,Aprovado,2026-09-26 00:28:10,João Vieira,2026-09-26 00:32:44
+1d798fca-dda7-49af-884e-47cb460086f2,predio_central,LAB 01,2026-09-29,Noturno,PG do ZAP,vieiraeugenia958@gmail.com,Rejeitado,2026-09-26 00:28:54,João Vieira,2026-09-26 00:32:50
+4284f74c-afaf-4044-938e-eaa9720d0d38,anexo_1,Washington,2026-09-23,Vespertino,PG do ZAP,vieiraeugenia958@gmail.com,Aprovado,2026-09-26 00:30:31,João Vieira,2026-09-26 00:32:56

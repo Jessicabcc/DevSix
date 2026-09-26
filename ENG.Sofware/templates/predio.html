@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ predio.nome }} - Agendamento</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+
+        /* =====================================================
+           FILTRO DE SALAS
+        ===================================================== */
+
+        .filtro-salas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin: 0 auto 15px;
+            max-width: 1100px;
+        }
+
+        .campo-filtro-salas {
+            flex: 1;
+            min-width: 250px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            color: white;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .campo-filtro-salas::placeholder {
+            color: var(--text-muted);
+        }
+
+        .campo-filtro-salas:focus {
+            border-color: var(--accent-mint);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.04);
+        }
+
+        .select-filtro-salas {
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            background: #1b2638;
+            color: white;
+            outline: none;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .select-filtro-salas:focus {
+            border-color: var(--accent-mint);
+        }
+
+        .btn-limpar-filtro {
+            padding: 14px 18px;
+            border: none;
+            border-radius: 10px;
+            background: var(--accent-mint);
+            color: #101820;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-limpar-filtro:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        .resultado-filtro-salas {
+            max-width: 1100px;
+            margin: 0 auto 25px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .mensagem-sem-resultados {
+            display: none;
+            text-align: center;
+            margin: 40px 0;
+            color: var(--text-muted);
+        }
+
+        .mensagem-sem-resultados i {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 700px) {
+
+            .filtro-salas {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .campo-filtro-salas {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .select-filtro-salas,
+            .btn-limpar-filtro {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body class="bg-dark">
+
+    <!-- =====================================================
+         TOASTS
+    ===================================================== -->
+
+    <div id="toast-container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+
+            {% if messages %}
+
+                {% for category, message in messages %}
+
+                    <div class="toast toast-{{ category }}">
+                        {{ message }}
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+        {% endwith %}
+
+    </div>
+
+
+    <!-- =====================================================
+         NAVBAR
+    ===================================================== -->
+
+    <header class="navbar glass-effect">
+
+        <div class="logo">
+
+            <a href="{{ url_for('index') }}" class="logo-link">
+
+                <h2>{{ predio.nome.upper() }}</h2>
+
+            </a>
+
+        </div>
+
+
+        <button
+            class="menu-toggle"
+            aria-label="Menu"
+            onclick="this.closest('.navbar').classList.toggle('open')">
+
+            <i class="fas fa-bars"></i>
+
+        </button>
+
+
+        <nav>
+
+            <a href="{{ url_for('index') }}" class="btn-nav">
+                Início
+            </a>
+
+
+            {% if usuario_logado %}
+
+                {% if tipo_usuario in ['Administrador', 'Coordenador'] %}
+
+                    <a
+                        href="{{ url_for('painel_admin') }}"
+                        class="btn-nav"
+                        style="color: var(--accent-mint);">
+
+                        Painel Admin
+
+                    </a>
+
+                    <a
+                        href="{{ url_for('dashboard_admin') }}"
+                        class="btn-nav">
+
+                        Dashboard
+
+                    </a>
+
+                {% endif %}
+
+
+                {% if tipo_usuario == 'Professor' %}
+
+                    <a
+                        href="{{ url_for('minhas_reservas') }}"
+                        class="btn-nav">
+
+                        Minhas Reservas
+
+                    </a>
+
+                    <a
+                        href="{{ url_for('notificacoes') }}"
+                        class="btn-nav">
+
+                        Notificações
+
+                    </a>
+
+                {% endif %}
+
+
+                <a
+                    href="{{ url_for('perfil') }}"
+                    class="btn-nav">
+
+                    Meu Perfil
+
+                </a>
+
+
+                <span class="user-info">
+
+                    {% if session.get('foto') %}
+
+                        <img
+                            src="{{ url_for('static', filename='uploads/' + session.get('foto')) }}"
+                            class="user-avatar-img"
+                            alt="Foto">
+
+                    {% else %}
+
+                        <span class="user-avatar">
+                            {{ usuario_logado[0]|upper }}
+                        </span>
+
+                    {% endif %}
+
+                    {{ usuario_logado }}
+
+                </span>
+
+
+                <a
+                    href="{{ url_for('logout') }}"
+                    class="btn-logout">
+
+                    Sair
+
+                </a>
+
+
+            {% else %}
+
+                <a
+                    href="{{ url_for('login') }}"
+                    class="btn-login">
+
+                    Login
+
+                </a>
+
+            {% endif %}
+
+        </nav>
+
+    </header>
+
+
+    <!-- =====================================================
+         CONTEÚDO PRINCIPAL
+    ===================================================== -->
+
+    <main class="main-content">
+
+
+        <!-- =================================================
+             TÍTULO
+        ================================================== -->
+
+        <div class="hero-section">
+
+            <h1 class="hero-title">
+
+                Salas do {{ predio.nome }}
+
+            </h1>
+
+            <p class="hero-subtitle">
+
+                Escolha um dos ambientes abaixo para visualizar
+                detalhes e agendar.
+
+            </p>
+
+        </div>
+
+
+        {% if salas %}
+
+
+            <!-- =================================================
+                 FILTRO DE SALAS
+            ================================================== -->
+
+            <div class="filtro-salas">
+
+                <input
+                    type="search"
+                    id="filtroNomeSala"
+                    class="campo-filtro-salas"
+                    placeholder="🔍 Pesquisar sala, equipamento ou capacidade..."
+                    autocomplete="off"
+                    aria-label="Pesquisar sala">
+
+
+                <select
+                    id="filtroCategoriaSala"
+                    class="select-filtro-salas"
+                    aria-label="Filtrar por categoria">
+
+                    <option value="">
+                        Todas as categorias
+                    </option>
+
+
+                    {% for chave, categoria in categorias.items() %}
+
+                        <option value="{{ chave|lower }}">
+
+                            {{ categoria.get('label', chave) }}
+
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+
+                <button
+                    type="button"
+                    id="btnLimparFiltro"
+                    class="btn-limpar-filtro">
+
+                    <i class="fas fa-rotate-left"></i>
+
+                    Limpar
+
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 CONTADOR DO FILTRO
+            ================================================== -->
+
+            <div
+                id="resultadoFiltroSalas"
+                class="resultado-filtro-salas">
+
+                Exibindo {{ salas|length }} sala(s).
+
+            </div>
+
+
+            <!-- =================================================
+                 LISTA DE SALAS
+            ================================================== -->
+
+            <div
+                class="grid-salas"
+                id="listaSalas">
+
+
+                {% for sala in salas %}
+
+                    {% set bloqueada = sala.status == 'Bloqueada' %}
+
+                    {% set cat = categorias.get(sala.categoria, {}) %}
+
+
+                    <div
+                        class="card-sala categoria-{{ sala.categoria|lower }}{% if bloqueada %} sala-bloqueada{% endif %}"
+
+                        data-nome="{{ sala.nome_sala|lower|e }}"
+
+                        data-observacoes="{{ sala.observacoes|lower|e }}"
+
+                        data-categoria="{{ sala.categoria|lower|e }}"
+
+                        {% if not bloqueada %}
+
+                            onclick="selecionarSala('{{ sala.id_sala }}')"
+
+                        {% endif %}>
+
+
+                        <!-- FAVORITO -->
+
+                        {% if usuario_logado and tipo_usuario == 'Professor' %}
+
+                            <button
+                                type="button"
+                                class="btn-favorito{% if sala.id_sala in favoritos_ids %} ativo{% endif %}"
+
+                                data-href="{{ url_for('favoritar_sala', id_sala=sala.id_sala) }}"
+
+                                onclick="event.stopPropagation(); window.location.href=this.dataset.href;"
+
+                                title="Favoritar sala">
+
+                                <i class="fas fa-star"></i>
+
+                            </button>
+
+                        {% endif %}
+
+
+                        <!-- ÍCONE -->
+
+                        <div class="card-icon-emoji">
+
+                            {{ cat.get('emoji', '📗') }}
+
+                        </div>
+
+
+                        <!-- NOME -->
+
+                        <h4>
+
+                            {{ sala.nome_sala }}
+
+                        </h4>
+
+
+                        <!-- OBSERVAÇÕES -->
+
+                        <p
+                            style="
+                                font-size: 0.75rem;
+                                color: var(--text-muted);
+                                margin-top: 8px;
+                                text-align: center;
+                            ">
+
+                            {{ sala.observacoes[:45] }}
+
+                            {% if sala.observacoes|length > 45 %}
+
+                                ...
+
+                            {% endif %}
+
+                        </p>
+
+
+                        <!-- BLOQUEADA -->
+
+                        {% if bloqueada %}
+
+                            <span
+                                class="badge-status status-rejeitado"
+                                style="
+                                    margin-top: 10px;
+                                    display: inline-block;
+                                ">
+
+                                Bloqueada
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- =================================================
+                 NENHUM RESULTADO
+            ================================================== -->
+
+            <div
+                id="mensagemSemResultados"
+                class="mensagem-sem-resultados">
+
+                <i class="fas fa-search"></i>
+
+                <p>
+
+                    Nenhuma sala encontrada com os filtros
+                    selecionados.
+
+                </p>
+
+            </div>
+
+
+        {% else %}
+
+
+            <!-- =================================================
+                 NENHUMA SALA CADASTRADA
+            ================================================== -->
+
+            <div
+                style="
+                    text-align: center;
+                    margin-top: 40px;
+                    color: var(--text-muted);
+                ">
+
+                <p>
+
+                    Nenhuma sala cadastrada para este prédio
+                    no momento.
+
+                </p>
+
+            </div>
+
+
+        {% endif %}
+
+
+        <!-- =====================================================
+             MODAL DE AGENDAMENTO
+        ===================================================== -->
+
+        <div
+            class="overlay-agendamento"
+            id="overlayAgendamento">
+
+            <div class="painel-agendamento">
+
+
+                <!-- =================================================
+                     INFORMAÇÕES DA SALA
+                ================================================== -->
+
+                <div class="info-sala-selecionada">
+
+                    <span class="tag-subtitulo">
+
+                        AGENDAMENTO DE SALA
+
+                    </span>
+
+
+                    <h1 id="modal_nome_sala">
+
+                        Nome da Sala
+
+                    </h1>
+
+
+                    <div class="localizacao-badge">
+
+                        <i class="fas fa-building"></i>
+
+                        <span>
+
+                            {{ predio.nome }}
+
+                        </span>
+
+                    </div>
+
+
+                    <p
+                        id="modal_observacoes"
+                        style="
+                            color: var(--text-muted);
+                            margin-top: 20px;
+                            font-size: 0.9rem;
+                            line-height: 1.6;
+                        ">
+
+                    </p>
+
+                </div>
+
+
+                <!-- =================================================
+                     FORMULÁRIO DE RESERVA
+                ================================================== -->
+
+                <div class="detalhes-reserva">
+
+                    <div class="header-modal">
+
+                        <h2>
+
+                            Reservar Horário
+
+                        </h2>
+
+
+                        <button
+                            class="btn-fechar"
+                            onclick="fecharModal()">
+
+                            &times;
+
+                        </button>
+
+                    </div>
+
+
+                    {% if usuario_logado and tipo_usuario == 'Professor' %}
+
+
+                        <form
+                            action="{{ url_for('salvar_agendamento') }}"
+                            method="POST">
+
+
+                            <input
+                                type="hidden"
+                                name="id_predio"
+                                value="{{ id_predio }}">
+
+
+                            <input
+                                type="hidden"
+                                name="nome_sala"
+                                id="input_nome_sala"
+                                value="">
+
+
+                            <!-- DATA -->
+
+                            <div class="form-group">
+
+                                <label for="data">
+
+                                    Data do Agendamento
+
+                                </label>
+
+
+                                <div class="input-wrapper">
+
+                                    <input
+                                        type="date"
+                                        id="data"
+                                        name="data"
+                                        required>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- TURNO -->
+
+                            <div class="form-group">
+
+                                <label for="turno">
+
+                                    Turno
+
+                                </label>
+
+
+                                <div class="input-wrapper">
+
+                                    <select
+                                        id="turno"
+                                        name="turno"
+                                        required>
+
+                                        <option
+                                            value=""
+                                            disabled
+                                            selected>
+
+                                            Selecione o turno...
+
+                                        </option>
+
+                                        <option value="Matutino">
+
+                                            Matutino
+
+                                        </option>
+
+                                        <option value="Vespertino">
+
+                                            Vespertino
+
+                                        </option>
+
+                                        <option value="Noturno">
+
+                                            Noturno
+
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- BOTÕES -->
+
+                            <div class="modal-actions">
+
+                                <button
+                                    type="button"
+                                    class="btn-cancelar"
+                                    onclick="fecharModal()">
+
+                                    Cancelar
+
+                                </button>
+
+
+                                <button
+                                    type="submit"
+                                    class="btn-confirmar-agendamento">
+
+                                    Solicitar Reserva
+
+                                </button>
+
+                            </div>
+
+                        </form>
+
+
+                    {% else %}
+
+
+                        <div
+                            style="
+                                text-align: center;
+                                margin-top: 20px;
+                            ">
+
+
+                            {% if not usuario_logado %}
+
+                                <p
+                                    style="
+                                        color: var(--text-muted);
+                                        margin-bottom: 20px;
+                                    ">
+
+                                    Você precisa estar logado como
+                                    Professor para realizar agendamentos.
+
+                                </p>
+
+
+                                <a
+                                    href="{{ url_for('login') }}"
+                                    class="btn-confirmar-agendamento"
+                                    style="
+                                        display: inline-block;
+                                        text-decoration: none;
+                                        text-align: center;
+                                    ">
+
+                                    Fazer Login
+
+                                </a>
+
+
+                            {% else %}
+
+
+                                <p style="color: var(--danger);">
+
+                                    Apenas contas de Professor podem
+                                    agendar salas.
+
+                                </p>
+
+
+                            {% endif %}
+
+                        </div>
+
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================================
+         RODAPÉ
+    ===================================================== -->
+
+    <footer class="rodape">
+
+
+        <div class="rodape-coluna brand">
+
+            <div class="rodape-logo">
+
+                <span class="logo-pequeno">
+
+                    CENTRO UNIVERSITÁRIO
+
+                </span>
+
+                <br>
+
+                <span class="logo-grande">
+
+                    UNISAPIENS
+
+                </span>
+
+            </div>
+
+
+            <p class="rodape-endereco">
+
+                <strong>
+                    CAMPUS JD. DAS MANGUEIRAS
+                </strong>
+
+                <br>
+
+                RUA PAULO FREIRE, 4767 - PORTO VELHO
+
+            </p>
+
+
+            <div class="redes-sociais">
+
+                <a
+                    href="https://www.instagram.com/centrounisapiens/"
+                    target="_blank">
+
+                    <i class="fab fa-instagram"></i>
+
+                </a>
+
+
+                <a
+                    href="https://www.facebook.com/faculdadeunisapiens"
+                    target="_blank">
+
+                    <i class="fab fa-facebook-f"></i>
+
+                </a>
+
+
+                <a
+                    href="https://www.youtube.com/@centrounisapiens"
+                    target="_blank">
+
+                    <i class="fab fa-youtube"></i>
+
+                </a>
+
+
+                <a
+                    href="https://www.google.com/maps/place/FACULDADE+UNISAPIENS+-+SAPIENS/@-8.7523286,-63.8707672,17z"
+                    target="_blank">
+
+                    <i class="fas fa-map-marker-alt"></i>
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="rodape-coluna links">
+
+            <h3>
+
+                A Faculdade
+
+            </h3>
+
+
+            <ul>
+
+                <li>
+                    <a href="#">
+                        PORTAL DO PROFESSOR
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        OUVIDORIA
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        FALE CONOSCO
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+
+        <div class="rodape-coluna links">
+
+            <h3>
+
+                Ensino
+
+            </h3>
+
+
+            <ul>
+
+                <li>
+
+                    <a
+                        href="https://faculdadesapiens.edu.br/tipos/graduacao/"
+                        target="_blank">
+
+                        PRESENCIAL
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a
+                        href="https://faculdadesapiens.edu.br/tipos/pos-graduacao/"
+                        target="_blank">
+
+                        PÓS-GRADUAÇÃO
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a
+                        href="https://faculdadesapiens.edu.br/biblioteca/"
+                        target="_blank">
+
+                        BIBLIOTECA
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+    </footer>
+
+
+    <!-- =====================================================
+         DADOS DAS SALAS
+    ===================================================== -->
+
+    <script type="application/json" id="dados-salas">
+
+        {{ salas | tojson }}
+
+    </script>
+
+
+    <script>
+
+        /* =====================================================
+           DADOS DAS SALAS
+        ===================================================== */
+
+        var salasInfo = JSON.parse(
+            document.getElementById('dados-salas').textContent
+        );
+
+
+        /* =====================================================
+           SELECIONAR SALA
+        ===================================================== */
+
+        function selecionarSala(idSala) {
+
+            var sala = null;
+
+
+            for (
+                var i = 0;
+                i < salasInfo.length;
+                i++
+            ) {
+
+                if (
+                    String(salasInfo[i].id_sala) ===
+                    String(idSala)
+                ) {
+
+                    sala = salasInfo[i];
+
+                    break;
+
+                }
+
+            }
+
+
+            if (!sala) {
+
+                console.error(
+                    'Sala não encontrada:',
+                    idSala
+                );
+
+                return;
+
+            }
+
+
+            var modalNome =
+                document.getElementById('modal_nome_sala');
+
+            var inputNome =
+                document.getElementById('input_nome_sala');
+
+            var modalObservacoes =
+                document.getElementById('modal_observacoes');
+
+            var overlay =
+                document.getElementById('overlayAgendamento');
+
+
+            if (modalNome) {
+
+                modalNome.innerText =
+                    sala.nome_sala || 'Sala';
+
+            }
+
+
+            if (inputNome) {
+
+                inputNome.value =
+                    sala.nome_sala || '';
+
+            }
+
+
+            if (modalObservacoes) {
+
+                modalObservacoes.innerText =
+                    sala.observacoes ||
+                    'Sem observações adicionais.';
+
+            }
+
+
+            if (overlay) {
+
+                overlay.classList.add('active');
+
+            }
+
+        }
+
+
+        /* =====================================================
+           FECHAR MODAL
+        ===================================================== */
+
+        function fecharModal() {
+
+            var overlay =
+                document.getElementById('overlayAgendamento');
+
+
+            if (overlay) {
+
+                overlay.classList.remove('active');
+
+            }
+
+        }
+
+
+        /* =====================================================
+           FILTRO DE SALAS
+        ===================================================== */
+
+        (function () {
+
+            var campoNome =
+                document.getElementById('filtroNomeSala');
+
+            var campoCategoria =
+                document.getElementById('filtroCategoriaSala');
+
+            var btnLimpar =
+                document.getElementById('btnLimparFiltro');
+
+            var listaSalas =
+                document.getElementById('listaSalas');
+
+            var resultado =
+                document.getElementById('resultadoFiltroSalas');
+
+            var mensagemSemResultados =
+                document.getElementById('mensagemSemResultados');
+
+
+            /* ================================================
+               SE NÃO EXISTIR LISTA DE SALAS, NÃO FAZ NADA
+            ================================================= */
+
+            if (
+                !campoNome ||
+                !campoCategoria ||
+                !btnLimpar ||
+                !listaSalas
+            ) {
+
+                return;
+
+            }
+
+
+            var cards =
+                Array.from(
+                    listaSalas.querySelectorAll('.card-sala')
+                );
+
+
+            /* ================================================
+               NORMALIZAR TEXTO
+               
+               Permite encontrar, por exemplo:
+               "Laboratório" usando "laboratorio".
+            ================================================= */
+
+            function normalizarTexto(texto) {
+
+                return String(texto || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                    .trim();
+
+            }
+
+
+            /* ================================================
+               APLICAR FILTRO
+            ================================================= */
+
+            function aplicarFiltro() {
+
+                var textoPesquisa =
+                    normalizarTexto(
+                        campoNome.value
+                    );
+
+
+                var categoriaSelecionada =
+                    normalizarTexto(
+                        campoCategoria.value
+                    );
+
+
+                var quantidadeEncontrada = 0;
+
+
+                cards.forEach(function (card) {
+
+
+                    var nome =
+                        normalizarTexto(
+                            card.dataset.nome
+                        );
+
+
+                    var observacoes =
+                        normalizarTexto(
+                            card.dataset.observacoes
+                        );
+
+
+                    var categoria =
+                        normalizarTexto(
+                            card.dataset.categoria
+                        );
+
+
+                    /* ========================================
+                       PESQUISA POR TEXTO
+                    ======================================== */
+
+                    var correspondeTexto =
+
+                        !textoPesquisa ||
+
+                        nome.includes(
+                            textoPesquisa
+                        ) ||
+
+                        observacoes.includes(
+                            textoPesquisa
+                        );
+
+
+                    /* ========================================
+                       PESQUISA POR CATEGORIA
+                    ======================================== */
+
+                    var correspondeCategoria =
+
+                        !categoriaSelecionada ||
+
+                        categoria ===
+                        categoriaSelecionada;
+
+
+                    /* ========================================
+                       RESULTADO
+                    ======================================== */
+
+                    var deveMostrar =
+
+                        correspondeTexto &&
+                        correspondeCategoria;
+
+
+                    card.style.display =
+                        deveMostrar ? '' : 'none';
+
+
+                    if (deveMostrar) {
+
+                        quantidadeEncontrada++;
+
+                    }
+
+                });
+
+
+                /* ========================================
+                   ATUALIZAR CONTADOR
+                ======================================== */
+
+                if (resultado) {
+
+                    resultado.textContent =
+                        'Exibindo ' +
+                        quantidadeEncontrada +
+                        ' de ' +
+                        cards.length +
+                        ' sala(s).';
+
+                }
+
+
+                /* ========================================
+                   MENSAGEM SEM RESULTADOS
+                ======================================== */
+
+                if (mensagemSemResultados) {
+
+                    mensagemSemResultados.style.display =
+
+                        quantidadeEncontrada === 0
+                            ? 'block'
+                            : 'none';
+
+                }
+
+            }
+
+
+            /* ================================================
+               DIGITAÇÃO
+            ================================================= */
+
+            campoNome.addEventListener(
+                'input',
+                aplicarFiltro
+            );
+
+
+            /* ================================================
+               CATEGORIA
+            ================================================= */
+
+            campoCategoria.addEventListener(
+                'change',
+                aplicarFiltro
+            );
+
+
+            /* ================================================
+               LIMPAR
+            ================================================= */
+
+            btnLimpar.addEventListener(
+                'click',
+                function () {
+
+                    campoNome.value = '';
+
+                    campoCategoria.value = '';
+
+                    aplicarFiltro();
+
+                    campoNome.focus();
+
+                }
+            );
+
+
+            /* ================================================
+               APLICAÇÃO INICIAL
+            ================================================= */
+
+            aplicarFiltro();
+
+        })();
+
+
+        /* =====================================================
+           FECHAR MODAL CLICANDO FORA
+        ===================================================== */
+
+        document.addEventListener(
+            'click',
+            function (evento) {
+
+                var overlay =
+                    document.getElementById('overlayAgendamento');
+
+
+                if (
+                    overlay &&
+                    evento.target === overlay
+                ) {
+
+                    fecharModal();
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           TECLA ESC FECHA O MODAL
+        ===================================================== */
+
+        document.addEventListener(
+            'keydown',
+            function (evento) {
+
+                if (evento.key === 'Escape') {
+
+                    fecharModal();
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           FECHAR TOASTS
+        ===================================================== */
+
+        setTimeout(
+            function () {
+
+                document
+                    .querySelectorAll('.toast')
+                    .forEach(
+                        function (t) {
+
+                            t.style.opacity = '0';
+
+
+                            setTimeout(
+                                function () {
+
+                                    t.remove();
+
+                                },
+                                300
+                            );
+
+                        }
+                    );
+
+            },
+            4000
+        );
+
+    </script>
+
+</body>
+</html>
