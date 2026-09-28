@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Administrador - UniSapiens</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .admin-main {
+            display: block !important;
+            max-width: 1200px;
+        }
+
+        .admin-header {
+            margin-bottom: 28px;
+        }
+
+        .admin-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .admin-menu-btn {
+            appearance: none;
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.04);
+            color: var(--text-muted);
+            border-radius: 14px;
+            padding: 18px 14px;
+            min-height: 92px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            font: inherit;
+            font-weight: 600;
+            transition: all .25s ease;
+        }
+
+        .admin-menu-btn i {
+            font-size: 1.35rem;
+            color: var(--accent-mint);
+        }
+
+        .admin-menu-btn:hover,
+        .admin-menu-btn.active {
+            color: white;
+            border-color: var(--accent-green);
+            background: rgba(59,130,246,0.13);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(0,0,0,.18);
+        }
+
+        .admin-menu-btn.active i {
+            color: var(--accent-green);
+        }
+
+        .admin-section {
+            display: none;
+        }
+
+        .admin-section.active {
+            display: block;
+            animation: adminFadeIn .22s ease;
+        }
+
+        .admin-card {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .admin-center {
+            text-align: center;
+        }
+
+        .admin-report-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            background: var(--accent-green);
+            width: auto;
+            min-width: 250px;
+        }
+
+        @keyframes adminFadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .admin-menu {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .admin-menu-btn {
+                min-height: 82px;
+                padding: 14px 8px;
+                font-size: .85rem;
+            }
+        }
+    </style>
+
+</head>
+<body class="bg-dark">
+    <div id="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast toast-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <header class="navbar glass-effect">
+        <div class="logo">
+            <a href="{{ url_for('index') }}" class="logo-link"><h2>PAINEL ADMIN / COORDENAÇÃO</h2></a>
+        </div>
+        <button class="menu-toggle" aria-label="Menu" onclick="this.closest('.navbar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+        <nav>
+            <a href="{{ url_for('index') }}" class="btn-nav">Início</a>
+            <a href="{{ url_for('dashboard_admin') }}" class="btn-nav">Dashboard</a>
+            <a href="{{ url_for('perfil') }}" class="btn-nav">Meu Perfil</a>
+            {% if usuario_logado %}
+                <span class="user-info">
+                    {% if session.get('foto') %}
+                        <img src="{{ url_for('static', filename='uploads/' + session.get('foto')) }}" class="user-avatar-img" alt="Foto">
+                    {% else %}
+                        <span class="user-avatar">{{ usuario_logado[0]|upper }}</span>
+                    {% endif %}
+                    {{ usuario_logado }} <span style="opacity: 0.6; font-size: 0.78rem;">({{ tipo_usuario }})</span>
+                </span>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+        </nav>
+    </header>
+
+    <main class="main-content admin-main">
+
+        <div class="admin-header">
+            <div>
+                <h1 class="hero-title" style="text-align: left; margin-bottom: 8px;">Painel Administrativo</h1>
+                <p class="hero-subtitle" style="text-align: left;">Escolha uma opção para abrir somente a área que deseja gerenciar.</p>
+            </div>
+        </div>
+
+        <div class="admin-menu" role="tablist" aria-label="Áreas administrativas">
+            <button type="button" class="admin-menu-btn active" data-section="acessos">
+                <i class="fas fa-user-plus"></i>
+                <span>Gerar Acessos</span>
+            </button>
+
+            <button type="button" class="admin-menu-btn" data-section="aprovacoes">
+                <i class="fas fa-clipboard-check"></i>
+                <span>Aprovações</span>
+            </button>
+
+            <button type="button" class="admin-menu-btn" data-section="salas">
+                <i class="fas fa-door-open"></i>
+                <span>Adicionar Sala</span>
+            </button>
+
+            <button type="button" class="admin-menu-btn" data-section="predios">
+                <i class="fas fa-building"></i>
+                <span>Cadastrar Prédio</span>
+            </button>
+
+            <button type="button" class="admin-menu-btn" data-section="relatorio">
+                <i class="fas fa-file-pdf"></i>
+                <span>Relatório</span>
+            </button>
+
+            {% if eh_admin %}
+            <button type="button" class="admin-menu-btn" data-section="gerenciar-salas">
+                <i class="fas fa-lock"></i>
+                <span>Gerenciar Salas</span>
+            </button>
+            {% endif %}
+        </div>
+
+        <div class="admin-sections">
+
+            <!-- GERAR ACESSOS -->
+            <section id="admin-section-acessos" class="admin-section active">
+                <div class="auth-card glass-effect admin-card">
+                    <div class="auth-header">
+                        <h2><i class="fas fa-user-plus"></i> Gerar Acessos</h2>
+                        <p>Crie links temporários para registrar a equipe.</p>
+                    </div>
+
+                    <form action="{{ url_for('painel_admin') }}" method="POST" style="margin-bottom: 10px;">
+                        <input type="hidden" name="tipo_conta" value="Professor">
+                        <button type="submit" class="btn-auth-submit" style="background: var(--accent-mint); color: #000;">Gerar Convite: Professor</button>
+                    </form>
+
+                    {% if eh_admin %}
+                    <form action="{{ url_for('painel_admin') }}" method="POST" style="margin-bottom: 10px;">
+                        <input type="hidden" name="tipo_conta" value="Coordenador">
+                        <button type="submit" class="btn-auth-submit" style="background: transparent; border: 1px solid var(--accent-mint); color: var(--accent-mint);">Gerar Convite: Coordenador</button>
+                    </form>
+                    <form action="{{ url_for('painel_admin') }}" method="POST">
+                        <input type="hidden" name="tipo_conta" value="Administrador">
+                        <button type="submit" class="btn-auth-submit" style="background: transparent; border: 1px solid var(--accent-mint); color: var(--accent-mint);">Gerar Convite: Administrador</button>
+                    </form>
+                    {% endif %}
+
+                    {% if link_convite %}
+                    <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid var(--border-color); text-align: center;">
+                        <p style="color: white; margin-bottom: 5px; font-size: 1rem;">Convite para <strong>{{ tipo_convite_gerado }}</strong></p>
+                        <p style="color: var(--danger); font-size: 0.85rem;"><i class="fas fa-clock"></i> Expira em 15 minutos</p>
+                        <div style="background: white; padding: 10px; border-radius: 10px; display: inline-block; margin: 15px 0;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ link_convite }}" alt="QR Code">
+                        </div>
+                        <div class="input-wrapper">
+                            <input type="text" value="{{ link_convite }}" readonly onclick="this.select()" style="text-align: center; color: var(--accent-mint);">
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- APROVAÇÕES -->
+            <section id="admin-section-aprovacoes" class="admin-section">
+                <div class="auth-card glass-effect admin-card">
+                    <div class="auth-header">
+                        <h2><i class="fas fa-clipboard-check"></i> Aprovações Pendentes</h2>
+                        <p>Gerencie as solicitações de reserva de salas.</p>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        {% for r in reservas_pendentes %}
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+                            <div>
+                                <strong style="color: white; font-size: 1.1rem;">{{ r.sala }}</strong><br>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">{{ r.data }} - {{ r.turno }}</span><br>
+                                <span style="font-size: 0.85rem; color: var(--accent-green);">Prof: {{ r.professor }}</span>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <a href="{{ url_for('acao_reserva', id_reserva=r.id_reserva, acao='aprovar') }}" style="background: rgba(16, 185, 129, 0.2); color: var(--success); padding: 10px 15px; border-radius: 8px; text-decoration: none; border: 1px solid rgba(16,185,129,0.5); transition: 0.3s;"><i class="fas fa-check"></i></a>
+                                <a href="{{ url_for('acao_reserva', id_reserva=r.id_reserva, acao='rejeitar') }}" style="background: rgba(239, 68, 68, 0.2); color: var(--danger); padding: 10px 15px; border-radius: 8px; text-decoration: none; border: 1px solid rgba(239,68,68,0.5); transition: 0.3s;"><i class="fas fa-times"></i></a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p style="text-align: center; color: var(--text-muted); margin-top: 20px;">Nenhuma solicitação pendente.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- ADICIONAR SALA -->
+            <section id="admin-section-salas" class="admin-section">
+                <div class="auth-card glass-effect admin-card">
+                    <div class="auth-header">
+                        <h2><i class="fas fa-door-open"></i> Adicionar Sala</h2>
+                        <p>Crie novas salas, defina a categoria e as observações.</p>
+                    </div>
+
+                    <form action="{{ url_for('nova_sala') }}" method="POST">
+                        <div class="form-group">
+                            <label>Prédio Localizado</label>
+                            <div class="input-wrapper">
+                                <select name="predio" required>
+                                    {% for key, p in predios.items() %}
+                                        <option value="{{ key }}">{{ p.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nome da Sala</label>
+                            <div class="input-wrapper">
+                                <input type="text" name="nome_sala" placeholder="Ex: Laboratório 3" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Categoria da Sala</label>
+                            <div class="input-wrapper">
+                                <select name="categoria" required>
+                                    {% for chave, cat in categorias.items() %}
+                                        <option value="{{ chave }}">{{ cat.emoji }} {{ cat.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Observações da Sala</label>
+                            <div class="input-wrapper">
+                                <textarea name="observacoes" placeholder="Ex: Capacidade 30 alunos, possui projetor, ar-condicionado..." required></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-auth-submit" style="background: var(--accent-green);">Criar Sala no Sistema</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- CADASTRAR PRÉDIO -->
+            <section id="admin-section-predios" class="admin-section">
+                <div class="auth-card glass-effect admin-card">
+                    <div class="auth-header">
+                        <h2><i class="fas fa-building"></i> Cadastrar Novo Prédio</h2>
+                        <p>Adicione novos blocos ou prédios da faculdade.</p>
+                    </div>
+
+                    <form action="{{ url_for('novo_predio') }}" method="POST">
+                        <div class="form-group">
+                            <label>Nome do Prédio</label>
+                            <div class="input-wrapper">
+                                <input type="text" name="nome_predio" placeholder="Ex: Bloco C" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Emoji de Identificação</label>
+                            <div class="input-wrapper">
+                                <input type="text" name="emoji_predio" placeholder="🏢" maxlength="4" value="🏢">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-auth-submit" style="background: var(--accent-green);">Cadastrar Prédio</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- RELATÓRIO -->
+            <section id="admin-section-relatorio" class="admin-section">
+                <div class="auth-card glass-effect admin-card admin-center">
+                    <div class="auth-header">
+                        <h2><i class="fas fa-file-pdf"></i> Relatório Institucional</h2>
+                        <p>Baixe o histórico completo de reservas e alterações estruturais em PDF.</p>
+                    </div>
+
+                    <a href="{{ url_for('relatorio_pdf') }}" class="btn-auth-submit admin-report-btn">
+                        <i class="fas fa-file-pdf"></i> Baixar Relatório em PDF
+                    </a>
+                </div>
+            </section>
+
+            {% if eh_admin %}
+            <!-- GERENCIAR SALAS -->
+            <section id="admin-section-gerenciar-salas" class="admin-section">
+                <div class="auth-card glass-effect admin-card">
+                    <div class="auth-header">
+                        <h2><i class="fas fa-lock"></i> Gerenciar Salas</h2>
+                        <p>Bloqueie salas em manutenção ou temporariamente indisponíveis.</p>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto;">
+                        {% for s in salas %}
+                        <div class="categoria-{{ s.categoria|lower }}" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-left-width: 4px; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <div>
+                                <strong style="color: white;">{{ categorias.get(s.categoria, {}).get('emoji', '📗') }} {{ s.nome_sala }}</strong><br>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">{{ predios.get(s.predio, {}).get('nome', s.predio) }}</span><br>
+                                <span class="badge-status status-{{ 'rejeitado' if s.status == 'Bloqueada' else 'aprovado' }}" style="margin-top: 6px; display: inline-block;">{{ s.status }}</span>
+                            </div>
+
+                            {% if s.status == 'Bloqueada' %}
+                                <a href="{{ url_for('alterar_status_sala', id_sala=s.id_sala, acao='desbloquear') }}" style="background: rgba(16, 185, 129, 0.2); color: var(--success); padding: 10px 15px; border-radius: 8px; text-decoration: none; border: 1px solid rgba(16,185,129,0.5); white-space: nowrap;">Desbloquear</a>
+                            {% else %}
+                                <a href="{{ url_for('alterar_status_sala', id_sala=s.id_sala, acao='bloquear') }}" style="background: rgba(239, 68, 68, 0.2); color: var(--danger); padding: 10px 15px; border-radius: 8px; text-decoration: none; border: 1px solid rgba(239,68,68,0.5); white-space: nowrap;">Bloquear</a>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <p style="text-align: center; color: var(--text-muted);">Nenhuma sala cadastrada.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+        </div>
+    </main>
+    <script>
+        // Alterna somente a área administrativa escolhida.
+        document.querySelectorAll('.admin-menu-btn').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var sectionName = this.dataset.section;
+
+                document.querySelectorAll('.admin-menu-btn').forEach(function (btn) {
+                    btn.classList.remove('active');
+                });
+
+                document.querySelectorAll('.admin-section').forEach(function (section) {
+                    section.classList.remove('active');
+                });
+
+                this.classList.add('active');
+
+                var section = document.getElementById('admin-section-' + sectionName);
+                if (section) {
+                    section.classList.add('active');
+                }
+            });
+        });
+
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach(t => {
+                t.style.opacity = '0';
+                setTimeout(() => t.remove(), 300);
+            });
+        }, 4000);
+    </script>
+</body>
+</html>

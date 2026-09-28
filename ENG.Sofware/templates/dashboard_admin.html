@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Institucional - UniSapiens</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark">
+
+    <div id="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast toast-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <header class="navbar glass-effect">
+        <div class="logo">
+            <a href="{{ url_for('index') }}" class="logo-link">
+                <h2>DASHBOARD INSTITUCIONAL</h2>
+            </a>
+        </div>
+        <button class="menu-toggle" aria-label="Menu" onclick="this.closest('.navbar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+        <nav>
+            <a href="{{ url_for('index') }}" class="btn-nav">Início</a>
+            <a href="{{ url_for('painel_admin') }}" class="btn-nav">Painel Admin</a>
+            <a href="{{ url_for('dashboard_admin') }}" class="btn-nav" style="color: var(--accent-mint);">Dashboard</a>
+            <span class="user-info">
+                {% if session.get('foto') %}
+                    <img src="{{ url_for('static', filename='uploads/' + session.get('foto')) }}" class="user-avatar-img" alt="Foto">
+                {% else %}
+                    <span class="user-avatar">{{ usuario_logado[0]|upper }}</span>
+                {% endif %}
+                {{ usuario_logado }}
+            </span>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="hero-section" style="text-align: left; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <div>
+                <h1 class="hero-title" style="text-align: left;">Visão Geral do Campus</h1>
+                <p class="hero-subtitle">Métricas consolidadas e ocupação das salas do UniSapiens.</p>
+            </div>
+            <a href="{{ url_for('relatorio_pdf') }}" class="btn-auth-submit" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; width: auto; padding: 14px 24px; background: var(--accent-green);">
+                <i class="fas fa-file-pdf"></i> Baixar Relatório em PDF
+            </a>
+        </div>
+
+        <section class="metric-grid">
+            <div class="metric-card">
+                <div class="valor">{{ metricas.total }}</div>
+                <div class="rotulo">Reservas no Total</div>
+            </div>
+            <div class="metric-card">
+                <div class="valor" style="color: var(--success);">{{ metricas.aprovadas }}</div>
+                <div class="rotulo">Aprovadas</div>
+            </div>
+            <div class="metric-card">
+                <div class="valor" style="color: #fbbf24;">{{ metricas.pendentes }}</div>
+                <div class="rotulo">Pendentes</div>
+            </div>
+            <div class="metric-card">
+                <div class="valor" style="color: var(--danger);">{{ metricas.rejeitadas }}</div>
+                <div class="rotulo">Rejeitadas</div>
+            </div>
+            <div class="metric-card">
+                <div class="valor">{{ metricas.semana }}</div>
+                <div class="rotulo">Últimos 7 dias</div>
+            </div>
+            <div class="metric-card">
+                <div class="valor">{{ metricas.mes }}</div>
+                <div class="rotulo">Últimos 30 dias</div>
+            </div>
+            <div class="metric-card">
+                <div class="valor">{{ total_salas }}</div>
+                <div class="rotulo">Salas Cadastradas</div>
+            </div>
+            <div class="metric-card">
+                <div class="valor">{{ total_predios }}</div>
+                <div class="rotulo">Prédios Cadastrados</div>
+            </div>
+        </section>
+
+        <section style="margin-bottom: 50px;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 10px; color: var(--accent-mint);"><i class="fas fa-chart-line"></i> Ranking de Ocupação do Campus</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">
+                <span style="color: #ef4444;"><i class="fas fa-circle"></i></span> Alta demanda / possível gargalo &nbsp;&nbsp;
+                <span style="color: #22c55e;"><i class="fas fa-circle"></i></span> Ocupação moderada / estrutura adequada
+            </p>
+
+            {% if ranking %}
+                <div>
+                    {% for item in ranking %}
+                        <div class="ranking-item indicador-{{ item.status_cor }}">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <span class="ranking-posicao">#{{ loop.index }}</span>
+                                <div>
+                                    <strong style="color: white;">{{ item.nome_sala }}</strong><br>
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">{{ item.predio_nome }}</span>
+                                    {% if item.status_sala == 'Bloqueada' %}
+                                        <span class="badge-status status-rejeitado" style="margin-left: 8px;">Bloqueada</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <span class="badge-turno">{{ item.total_reservas }} reserva{{ 's' if item.total_reservas != 1 else '' }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--text-muted);">Nenhuma sala cadastrada até o momento.</p>
+            {% endif %}
+        </section>
+
+        <section>
+            <h2 style="font-size: 1.5rem; margin-bottom: 20px; color: var(--accent-mint);"><i class="fas fa-history"></i> Últimas Alterações Estruturais</h2>
+            {% if historico_recente %}
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for h in historico_recente %}
+                        <div class="historico-item">
+                            <div>
+                                <strong style="color: white;">{{ h.acao }}</strong>
+                                <span style="color: var(--text-muted); font-size: 0.85rem;"> — {{ h.detalhes }}</span>
+                            </div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;">
+                                {{ h.data_hora }}<br>{{ h.usuario }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <p style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">O histórico completo está disponível no relatório em PDF.</p>
+            {% else %}
+                <p style="color: var(--text-muted);">Nenhuma alteração estrutural registrada até o momento.</p>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach(t => {
+                t.style.opacity = '0';
+                setTimeout(() => t.remove(), 300);
+            });
+        }, 4000);
+    </script>
+</body>
+</html>
