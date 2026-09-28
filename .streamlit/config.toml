@@ -1,0 +1,18 @@
+[theme]
+base = "dark"
+primaryColor = "#3b82f6"
+backgroundColor = "#0a1630"
+secondaryBackgroundColor = "#10214a"
+textColor = "#ffffff"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+borderColor = "#334565"
+baseRadius = "large"
+buttonRadius = "medium"
+showWidgetBorder = true
+
+[theme.sidebar]
+backgroundColor = "#0a1630"
+secondaryBackgroundColor = "#10214a"
+textColor = "#ffffff"
+primaryColor = "#3b82f6"
+borderColor = "#334565"

@@ -1,10 +1,14 @@
-id_reserva,nome_sala,data,turno,professor,status
-c221d914-0536-4543-8081-9ad186a4bff1,Laboratório de Informática 01,2026-09-01,Matutino,rafa.sec,Rejeitado
-03f54453-05bc-4c9b-844f-65d5d5da5f15,Laboratório de Informática 01,2026-09-04,Matutino,Prof. Girafales,Aprovado
-db38d644-6b1a-46d0-8f2e-e4a966129e58,Laboratório de Informática 01,2026-09-04,Vespertino,Prof. Madruga,Aprovado
-63a8c0fc-cfd2-47ef-9dd6-04ec78c8f8e8,Laboratório Maker ,2026-09-07,Noturno,Prof. Girafales,Rejeitado
-f0bbbba6-a1bd-4c9e-846d-9a5cde87fdd0,Laboratório de Informática 01,2026-09-05,Matutino,Prof. Girafales,Rejeitado
-6d5164cd-ff07-443a-98d5-c84ebc067656,Laboratório de Informática 01,2026-09-05,Matutino,Girafales,Aprovado
-c6ff31cb-3f12-40ad-a645-95ff81c0eee7,Sala de aula 03,2026-09-05,Vespertino,Endriel,Aprovado
-f6bf3105-bbec-40ce-af1f-ff14c0158dd5,Laboratório de Informática 01,2026-09-06,Matutino,Endriel,Aprovado
-49ea253e-574b-4c10-8f6a-fac366b20ea7,Laboratório de Informática 01,2026-09-04,Matutino,Endriel,Rejeitado
+id_reserva,predio,nome_sala,data,turno,professor,email,status,solicitado_em,responsavel,decidido_em
+c221d914-0536-4543-8081-9ad186a4bff1,,Laboratório de Informática 01,2026-09-01,Matutino,rafa.sec,,Rejeitado,,,
+03f54453-05bc-4c9b-844f-65d5d5da5f15,,Laboratório de Informática 01,2026-09-04,Matutino,Prof. Girafales,,Aprovado,,,
+db38d644-6b1a-46d0-8f2e-e4a966129e58,,Laboratório de Informática 01,2026-09-04,Vespertino,Girafales,,Aprovado,,,
+63a8c0fc-cfd2-47ef-9dd6-04ec78c8f8e8,,Laboratório Maker ,2026-09-07,Noturno,Prof. Girafales,,Rejeitado,,,
+f0bbbba6-a1bd-4c9e-846d-9a5cde87fdd0,,Laboratório de Informática 01,2026-09-05,Matutino,Prof. Girafales,,Rejeitado,,,
+6d5164cd-ff07-443a-98d5-c84ebc067656,,Laboratório de Informática 01,2026-09-05,Matutino,Prof. Madruga,,Aprovado,,,
+c6ff31cb-3f12-40ad-a645-95ff81c0eee7,,Sala de aula 03,2026-09-05,Vespertino,Endriel,,Aprovado,,,
+f6bf3105-bbec-40ce-af1f-ff14c0158dd5,,Laboratório de Informática 01,2026-09-06,Matutino,Endriel,,Aprovado,,,
+49ea253e-574b-4c10-8f6a-fac366b20ea7,,Laboratório de Informática 01,2026-09-04,Matutino,Endriel,,Rejeitado,,,
+2551ce4b-3c90-45af-8bd9-9bceb0ec426a,predio_central,LAB 01,2026-09-29,Noturno,PG do ZAP,vieiraeugenia958@gmail.com,Aprovado,2026-09-26 00:28:10,João Vieira,2026-09-26 00:32:44
+1d798fca-dda7-49af-884e-47cb460086f2,predio_central,LAB 01,2026-09-29,Noturno,PG do ZAP,vieiraeugenia958@gmail.com,Rejeitado,2026-09-26 00:28:54,João Vieira,2026-09-26 00:32:50
+4284f74c-afaf-4044-938e-eaa9720d0d38,anexo_1,Washington,2026-09-23,Vespertino,PG do ZAP,vieiraeugenia958@gmail.com,Aprovado,2026-09-26 00:30:31,João Vieira,2026-09-26 00:32:56
+91400455-8c3c-49ee-9429-b42366afaa3f,Salas de Metodologia Ativa,Sala Metodologia APG 02,2026-09-27,Matutino,Girafales,,Aprovado,2026-09-27 12:16:34,Suporte.ti,2026-09-27 12:34:22

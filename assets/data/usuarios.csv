@@ -1,6 +1,8 @@
-nome,senha,tipo,status
-Suporte.ti,admin123,Administrador,Online
-rafa.sec,rafa.sec,Secretário,Offline
-Endriel,123456,Professor,Offline
-Girafales,123456,Professor,Offline
-madruga,123456,Professor,Offline
+nome,email,senha,tipo,status,foto
+Suporte.ti,,pbkdf2:sha256:600000$397a87df75e28f2aa25dfe13a4e96bd6$f924a5712fcb51ac4cecf178b5ad15e372a6b2cb9024463472becfb024ba922a,Administrador,Online,9c2b00de-3ae4-4776-bc25-3d3c6d95072c.jpg
+Endriel,,123456,Professor,Offline,
+Girafales,,pbkdf2:sha256:600000$4f040bd44b259687504c030d046c9180$2aad9a88fb90a12daa811bb0d38577eda5803db19f222d9c954b234f0037cdb5,Professor,Online,afc5502d-d229-40ef-ba69-a3699a356edc.jpg
+madruga,,123456,Professor,Offline,
+João Vieira,vieirabotelhojoaovictor@gmail.com,scrypt:32768:8:1$5IBNjntvYGPG2ryv$f0b730dd20aa75c25a38411e628fe272ed3f0f0bda9d96abe36c06247d4aec8d28887391b08dd42b4db8f81b95c0ac76d63cd836c37d1883ff70235501cfe8f5,Administrador,Online,1d34078f-a387-481e-b9b4-289af16c81f1.jpg
+PG do ZAP,vieiraeugenia958@gmail.com,scrypt:32768:8:1$NFNx2SWvI07MxAzP$a832383e222f96e68dc7c4b33d5b53a926638490acf2faafc581fe90950ebc6ff63f438491a5b50eba2fec5da44dcde758eff8b3088ee472974e49f5eab8437b,Professor,Offline,3f5fc4b9-17b5-4fa0-a60a-e942070b46d5.jpeg
+Maria,maria@123,pbkdf2:sha256:600000$935f4d7260702a91b9739955af8e4dde$4be5c67a0b9e3f6cc4a3f4ba8b47cf2eb390130e73511dafbbfc2efd018d9b73,Coordenador,Offline,
