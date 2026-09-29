@@ -19,10 +19,19 @@ Sistema desenvolvido em Python com Streamlit para gerenciar reservas de salas un
 
 ## Estrutura do projeto
 
-- `app.py` — ponto de entrada da aplicação
-- `style.css` — estilos visuais da interface
-- `database/` — arquivos CSV do sistema
-- `views/` — telas por perfil de usuário
+- `app.py` — ponto de entrada da aplicação.
+  
+- `style.css` — estilos visuais da interface.
+  
+- `views/` — telas por perfil de usuário.
+  
+- `assets/` - imagens e os dados armazenados.
+  
+- `controllers/` - separa a lógica de negócio e o processamento dos dados das telas ou rotas da interface.
+  
+- `utils/` - armazena funções auxiliares, genéricas e reutilizáveis que dão suporte a várias partes da aplicação.
+  
+- `models/` - cuida de tudo o que está relacionado à estrutura, persistência e regras de armazenamento das informações.
 
 ## Requisitos
 
