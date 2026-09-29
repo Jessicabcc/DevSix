@@ -58,3 +58,10 @@ data_hora,usuario,tipo_usuario,acao,detalhes
 2026-09-27 12:41:55,Suporte.ti,Administrador,Desbloqueio de Sala,Sala 'Sala de aula 01' ficou ativa
 2026-09-27 12:41:56,Suporte.ti,Administrador,Bloqueio de Sala,Sala 'Sala de aula 01' ficou bloqueada
 2026-09-27 12:41:58,Suporte.ti,Administrador,Desbloqueio de Sala,Sala 'Sala de aula 01' ficou ativa
+2026-09-29 10:59:26,Suporte.ti,Administrador,Convite criado,Convite para Secretário
+2026-09-29 11:00:04,rafa.sec,Secretário,Conta criada,Conta de Secretário criada para rafa.sec
+2026-09-29 11:01:41,Suporte.ti,Administrador,Convite criado,Convite para Secretário
+2026-09-29 11:02:19,rafa.sec,Secretário,Conta criada,Conta de Secretário criada para rafa.sec
+2026-09-29 11:04:44,Suporte.ti,Administrador,Convite criado,Convite para Coordenador
+2026-09-29 11:05:18,Maria,Coordenador,Conta criada,Conta de Coordenador criada para Maria
+2026-09-29 11:34:56,Suporte.ti,,Usuário removido,Conta rafa.sec removida

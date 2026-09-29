@@ -163,7 +163,7 @@ def _formularios_admin(reservas_pendentes):
         st.subheader("Gerar convite de cadastro")
         papeis = ["Professor"]
         if tipo == "Administrador":
-            papeis.extend(["Coordenador", "Administrador", "Secretário"])
+            papeis.extend(["Coordenador", "Administrador"])
         with st.form("form_convite"):
             papel = st.selectbox("Tipo de conta", papeis)
             gerar = st.form_submit_button("Gerar convite", type="primary")
