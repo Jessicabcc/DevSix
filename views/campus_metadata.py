@@ -14,7 +14,7 @@ CATEGORIAS_SALA = {
 
 
 def visual_predio(nome):
-    return PREDIO_VISUAL.get(nome, {"emoji": "🏢", "categoria": "Normal"})
+    return PREDIO_VISUAL.get(nome, {"emoji": "🏫", "categoria": "Normal"})
 
 
 def categoria_da_sala(predio, categoria=None):

@@ -84,7 +84,7 @@ def _formularios_admin(reservas_pendentes):
         with st.expander("Cadastrar prédio ou bloco"):
             with st.form("form_predio_na_sala"):
                 novo_predio = st.text_input("Nome do prédio ou bloco")
-                simbolo_predio = st.text_input("Símbolo", value="🏢", max_chars=4)
+                simbolo_predio = st.text_input("Símbolo", value="🏫", max_chars=4)
                 criar_predio_sala = st.form_submit_button("Cadastrar prédio", type="primary")
             if criar_predio_sala:
                 if criar_predio(novo_predio, simbolo_predio, usuario, tipo):
