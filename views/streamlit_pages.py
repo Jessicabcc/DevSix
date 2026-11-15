@@ -30,13 +30,13 @@ def _navegacao(usuario, tipo):
     caminho_foto = PROJECT_DIR / "assets" / "uploads" / foto if foto else None
     pagina_atual = str(st.query_params.get("page", "inicio"))
     if pagina_atual == "dashboard":
-        marca = "DASHBOARD INSTITUCIONAL TESTE PARA TEXTOS"
+        marca = "DASHBOARD INSTITUCIONAL TESTE DE TITULO "
     elif pagina_atual == "perfil":
-        marca = "MEU PERFIL TESTE PARA TEXTOS"
+        marca = "MEU PERFIL"
     elif tipo in ("Administrador", "Coordenador") and pagina_atual == "admin":
-        marca = "PAINEL ADMIN / COORDENAÇÃO TESTE"
+        marca = "PAINEL ADMIN / ADMINISTRAÇÃO TESTE DE TITULO"
     else:
-        marca = "UNISAPIENS TESTE PARA TEXTOS"
+        marca = "UNISAPIENS TESTE DE TITULO"
 
     if tipo in ("Administrador", "Secretário", "Coordenador"):
         links = [("Início", "inicio"), ("Painel Admin", "admin"), ("Dashboard", "dashboard"), ("Meu Perfil", "perfil")]
