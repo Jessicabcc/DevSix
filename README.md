@@ -102,3 +102,4 @@ O sistema cria automaticamente um usuário administrador padrão:
 ## Observações
 
 Os dados são armazenados em CSV na pasta `database/`, então o sistema é simples e estático, ideal para fins acadêmicos e de demonstração.
+--
