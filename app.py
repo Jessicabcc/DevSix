@@ -66,7 +66,6 @@ def _limpar_acao(page, **extras):
 
 def _flash(tipo, mensagem):
     st.session_state["flash"] = (tipo, mensagem)
-if ("login_pendente" in st.session_state) and st.session_state["login_pendente"]:
 
 def _finalizar_login(credencial):
     st.session_state.pop("login_pendente", None)
