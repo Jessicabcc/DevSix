@@ -10,7 +10,7 @@ from controllers.reservation_controller import create_reservation, update_reserv
 from models.db_manager import get_data, init_db
 from views import admin_view, registro_view, secretario_view, streamlit_pages, teacher_view
 
-st.set_page_config(page_title="Agendamentos UniSapiens DevSix Teste", page_icon="🏫", layout="wide")
+st.set_page_config(page_title="Agendamentos UniSapiens", page_icon="🏫", layout="wide")
 init_db()
 
 css_path = Path(__file__).resolve().parent / "style" / "style.css"
