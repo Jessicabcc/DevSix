@@ -1,5 +1,4 @@
 from io import BytesIO
-from pathlib import Path
 import uuid
 
 from PIL import Image, UnidentifiedImageError
