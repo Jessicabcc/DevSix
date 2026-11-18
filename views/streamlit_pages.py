@@ -254,7 +254,7 @@ def pagina_predio(usuario, tipo, predio_nome, salas, pode_agendar):
                     })
                     st.rerun()
             else:
-                st.caption("Somente professores podem agendar salas.")
+                st.caption("Somente contas de professores podem agendar salas.")
 
 
 def pagina_reservas(usuario, tipo, reservas):
