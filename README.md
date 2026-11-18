@@ -70,7 +70,7 @@ Windows CMD:
 4. Instale as dependências:
 
 ```bash
-pip install streamlit pandas
+pip install -r requirements.txt
 ```
 
 ## Execução
@@ -101,4 +101,4 @@ O sistema cria automaticamente um usuário administrador padrão:
 
 ## Observações
 
-Os dados são armazenados em CSV na pasta `database/`, então o sistema é simples e estático, ideal para fins acadêmicos e de demonstração.
+Os dados são armazenados em CSV na pasta `assets/data/`, então o sistema é simples e estático, ideal para fins acadêmicos e de demonstração.
