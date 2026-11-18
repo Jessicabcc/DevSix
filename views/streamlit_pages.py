@@ -93,7 +93,7 @@ def _normalizar(texto):
 def pagina_inicio(usuario, tipo, predios, reservas, minhas_aprovadas):
     _navegacao(usuario, tipo)
     st.title("Reserve seu espaço acadêmico")
-    st.write("Selecione um prédio para consultar as salas e solicitar um agendamento.")
+    st.write("Selecione uma categoria para consultar as salas e solicitar um agendamento!")
 
     predios_ocultos = {"prediocentral", "anexo1", "anexo2anfiteatro", "anexo2antefiatro"}
     predios_visiveis = {
