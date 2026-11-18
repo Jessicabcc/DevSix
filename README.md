@@ -78,7 +78,7 @@ pip install streamlit pandas
 No diretório do projeto, execute:
 
 ```bash
-streamlit run app.pyst
+streamlit run app.py
 ```
 
 ## Usuários iniciais
