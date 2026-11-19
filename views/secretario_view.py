@@ -56,8 +56,12 @@ def _formularios_secretario():
         else:
             df_agend = get_data("agendamentos")
             for _, troca in pendentes.iterrows():
-                reserva_1 = df_agend[df_agend["id_reserva"] == troca["id_reserva_1"]].iloc[0]
-                reserva_2 = df_agend[df_agend["id_reserva"] == troca["id_reserva_2"]].iloc[0]
+                r1_df = df_agend[df_agend["id_reserva"] == troca["id_reserva_1"]]
+                r2_df = df_agend[df_agend["id_reserva"] == troca["id_reserva_2"]]
+                if r1_df.empty or r2_df.empty:
+                    continue
+                reserva_1 = r1_df.iloc[0]
+                reserva_2 = r2_df.iloc[0]
                 st.write("---")
                 st.write(f"**Reserva 1:** {reserva_1['nome_sala']} ({reserva_1['data']} - {reserva_1['turno']}) - {reserva_1['professor']}")
                 st.write(f"**Reserva 2:** {reserva_2['nome_sala']} ({reserva_2['data']} - {reserva_2['turno']}) - {reserva_2['professor']}")
