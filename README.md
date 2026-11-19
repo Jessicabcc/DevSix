@@ -21,7 +21,7 @@ Sistema desenvolvido em Python com Streamlit para gerenciar reservas de salas un
 
 - `app.py` — ponto de entrada da aplicação.
   
-- `style.css` — estilos visuais da interface.
+- `style/style.css` — estilos visuais da interface.
   
 - `views/` — telas por perfil de usuário.
   
@@ -44,7 +44,7 @@ Sistema desenvolvido em Python com Streamlit para gerenciar reservas de salas un
 1. Acesse a pasta do projeto:
 
 ```bash
-cd pasta-projeto-2
+cd DevSix
 ```
 
 2. Crie um ambiente virtual, se desejar:
