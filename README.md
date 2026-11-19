@@ -4,12 +4,13 @@ Sistema desenvolvido em Python com Streamlit para gerenciar reservas de salas un
 
 ## Funcionalidades
 
-- Login por usuário e senha
+- Login por usuário e senha e acesso rápido por QR Code
 - Tipos de usuário:
   - Administrador
+  - Coordenador
   - Secretário
   - Professor
-- Cadastro e gerenciamento de usuários
+- Cadastro por link de convite e gerenciamento de usuários
 - Reservas de salas por data e turno
 - Aprovação ou rejeição de reservas
 - Solicitação de trocas entre reservas aprovadas
