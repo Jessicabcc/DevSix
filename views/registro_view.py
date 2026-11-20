@@ -1,19 +1,19 @@
 import streamlit as st
 
 from controllers.invitation_controller import get_invitation, register_with_invitation
-
+from utils import mensagens as txt
 
 def render():
     st.title("Criar conta")
     token = st.query_params.get("token", "")
     estado, convite = get_invitation(token)
     if estado != "valido":
-        mensagens = {
-            "expirado": "Este convite expirou.",
-            "invalido": "O convite é inválido ou já foi utilizado.",
-            "ausente": "Use um convite válido para criar sua conta.",
+        avisos = {
+             "expirado": txt.MSG_CONVITE_EXPIRADO,
+            "invalido": txt.MSG_CONVITE_INVALIDO,
+            "ausente": txt.MSG_CONVITE_AUSENTE,
         }
-        st.warning(mensagens[estado])
+        st.warning(avisos[estado])
         if st.button("Voltar para o login", icon=":material/login:"):
             st.query_params.clear()
             st.rerun()
@@ -37,13 +37,13 @@ def render():
             st.query_params.clear()
             st.rerun()
         elif resultado == "campos":
-            st.error("Informe nome, e-mail válido e senha.")
+            st.error(txt.MSG_REGISTRO_DADOS_INVALIDOS)
         elif resultado == "expirado":
-            st.error("Este convite expirou.")
+            st.error(txt.MSG_CONVITE_EXPIRADO)
         elif resultado == "invalido":
-            st.error("O convite é inválido ou já foi utilizado.")
+            st.error(txt.MSG_CONVITE_INVALIDO)
         else:
-            st.error("O nome ou e-mail já está cadastrado, ou o convite não tem permissão para este papel.")
+            st.error(txt.MSG_REGISTRO_NEGADO)
 
     if st.button("Voltar para o login", icon=":material/login:"):
         st.query_params.clear()

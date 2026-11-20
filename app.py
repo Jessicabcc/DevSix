@@ -2,7 +2,7 @@ from datetime import date
 from pathlib import Path
 
 import streamlit as st
-
+from utils import mensagens as txt
 from controllers.auth_controller import authenticate, login, logout as controller_logout
 from controllers.exchange_controller import create_exchange, respond_to_exchange
 from controllers.qr_auth_controller import consume_login_token
@@ -179,7 +179,7 @@ if not st.session_state["logged_in"]:
         if credencial:
             _finalizar_login(credencial)
         st.title("Acesso pelo QR Code")
-        st.error("Este QR Code expirou ou já foi utilizado. Gere outro no perfil do dispositivo conectado.")
+        st.error(txt.MSG_QR_EXPIRADO)
         if st.button("Voltar para o login", icon=":material/login:"):
             st.query_params.clear()
             st.rerun()
@@ -201,13 +201,11 @@ if not st.session_state["logged_in"]:
                         else:
                             _finalizar_login(credencial)
                     else:
-                        st.error("Credenciais inválidas.")
+                        st.error(txt.MSG_CREDENCIAIS_INVALIDAS)
             st.caption("Cadastros disponíveis por convite | UniSapiens")
         credencial_pendente = st.session_state.get("login_pendente")
         if credencial_pendente:
-            st.warning(
-                "Esta conta já aparece Online em outro acesso. Confirme sua identidade para continuar."
-            )
+            st.warning(txt.MSG_CONTA_JA_ONLINE)
             confirmar, cancelar = st.columns(2)
             if confirmar.button("Confirmar identidade e entrar", type="primary"):
                 _finalizar_login(credencial_pendente)
