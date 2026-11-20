@@ -46,15 +46,8 @@ python -m pip install -r requirements.txt
 
 Confirme que o Streamlit está instalado:
 
-<<<<<<< Updated upstream
-No diretório do projeto, execute:
-
-```bash
-streamlit run app.pyst
-=======
 ```powershell
 python -m streamlit --version
->>>>>>> Stashed changes
 ```
 
 Mantenha esse terminal aberto para continuar os próximos passos.
@@ -134,7 +127,8 @@ O Streamlit abrirá o endereço local no navegador (normalmente `http://localhos
 
 1. Envie o projeto ao GitHub sem incluir arquivos de chave, `.env` ou `.streamlit/secrets.toml`.
 2. No Streamlit Community Cloud, crie um app apontando para o repositório, a branch desejada e `app.py`.
-3. Em **App settings → Secrets**, configure as credenciais de uma conta de serviço Firebase:
+3. Crie no Supabase Storage um bucket privado chamado `profile-photos`. Não habilite acesso público: o app faz upload e download no servidor.
+4. Em **App settings → Secrets**, configure a conta de serviço Firebase para o Firestore e o URL/chave secreta do Supabase para as fotos:
 
 ```toml
 [firebase]
@@ -144,18 +138,22 @@ private_key = """-----BEGIN PRIVATE KEY-----
 COLE AQUI O CONTEUDO DA CHAVE PRIVADA
 -----END PRIVATE KEY-----
 """
-storage_bucket = "NOME_DO_BUCKET_FIREBASE"
+
+[supabase]
+url = "https://ID_DO_PROJETO.supabase.co"
+secret_key = "sb_secret_..."
+bucket = "profile-photos"
 ```
 
-Obtenha os valores `client_email` e `private_key` do JSON da conta de serviço. No Firebase Console, crie/ative o bucket em **Build → Storage** e use o nome do bucket exibido nas configurações do Storage. Não publique nem compartilhe o JSON ou a chave privada.
+Obtenha `client_email` e `private_key` do JSON da conta de serviço Firebase, e `url` e `secret_key` na área de API Keys do projeto Supabase. A chave `sb_secret_...` tem privilégios elevados: mantenha-a apenas nos Secrets do Streamlit, nunca no navegador, GitHub, `.env` versionado ou nesta conversa. O app usa essa chave somente no servidor para acessar o bucket privado.
 
-A conta de serviço precisa ter acesso ao Firestore e ao bucket, por exemplo, as funções IAM **Cloud Datastore User** e **Storage Object User**. Conceda somente as permissões necessárias e nunca coloque as credenciais em arquivos do repositório.
+No Firebase, conceda à conta de serviço acesso ao Firestore, por exemplo, a função IAM **Cloud Datastore User**. O Firebase continua sendo usado para o Firestore; as fotos novas ficam no Supabase Storage.
 
 Antes de publicar, confirme que o Firestore configurado em `project_id` já contém os dados e o documento de conclusão da migração CSV. Se ainda não migrou, faça isso uma única vez em um ambiente local autenticado com acesso ao mesmo projeto, seguindo o passo 4. Não rode a migração de um banco já utilizado.
 
 O `requirements.txt` do repositório deve estar em UTF-8 para que o Cloud instale as dependências corretamente. Depois do deploy, confira os logs do app se a inicialização indicar credenciais, bucket ou migração ausentes.
 
-Uploads de fotos feitos no Streamlit Cloud são armazenados no Firebase Storage. As imagens locais existentes em `assets/uploads/` continuam sendo lidas enquanto estiverem incluídas no repositório.
+Uploads de fotos feitos no Streamlit Cloud são armazenados no bucket privado do Supabase. Fotos locais antigas em `assets/uploads/` continuam sendo lidas enquanto estiverem incluídas no repositório. Em execução local sem Secrets do Firebase e do Supabase, uploads continuam usando a pasta local. Se os Secrets do Firebase estiverem configurados sem os do Supabase, novos uploads são recusados para evitar gravações no Firebase Storage.
 
 ## 7. Primeiro acesso
 
@@ -170,6 +168,7 @@ Se essa conta for criada, troque a senha inicial antes de usar o sistema com dad
 
 - Não compartilhe nem versione arquivos de credenciais, tokens ou o arquivo ADC do Google Cloud.
 - Este app usa o Firebase Admin SDK no servidor. As operações são autorizadas pela identidade Google/ADC e pelas permissões IAM da conta; as regras de acesso do SDK cliente Firebase não substituem o controle de acesso IAM para essa conexão.
+- A chave secreta do Supabase também é usada somente no servidor e pode ignorar as políticas RLS; nunca a exponha no cliente. Mantenha o bucket privado e conceda somente os acessos necessários.
 - Dê à conta somente as permissões necessárias no projeto. Para acesso ao Firestore, peça ao administrador do projeto uma função IAM apropriada e, se necessário, permissão para usar o projeto como quota project.
 - Mantenha uma cópia de segurança dos CSVs. Depois que os dados estiverem no Firestore, o app lê e grava no Firestore; os CSVs servem apenas como origem da migração.
 - As leituras são armazenadas em cache por até 5 segundos. Gravações realizadas pelo app invalidam o cache imediatamente.
