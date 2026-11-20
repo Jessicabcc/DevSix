@@ -14,19 +14,22 @@ def create_reservation(nome_sala, data_reserva, turno, professor, email="", pred
         sala = sala[sala["predio"] == predio]
     if sala.empty or str(sala.iloc[0]["status"]) == "Bloqueada":
         return False
+    predio_reservado = predio or sala.iloc[0]["predio"]
     data_texto = str(data_reserva)
     ocupado = agendamentos[
+        (agendamentos['predio'] == (predio or sala.iloc[0]["predio"])) &
         (agendamentos['nome_sala'] == nome_sala) &
         (agendamentos['data'] == data_texto) &
         (agendamentos['turno'] == turno) &
         (agendamentos['status'].isin(['Aprovado', 'Pendente']))
     ]
+
     if not ocupado.empty:
         return False
 
     nova_reserva = pd.DataFrame([{
         'id_reserva': str(uuid.uuid4()),
-        'predio': predio or sala.iloc[0]["predio"],
+        'predio': predio_reservado,
         'nome_sala': nome_sala,
         'data': data_texto,
         'turno': turno,
