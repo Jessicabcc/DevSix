@@ -101,10 +101,6 @@ def _formularios_admin(reservas_pendentes):
                 st.error(txt.MSG_PREDIO_INVALIDO)
 
 
-        predios = get_data("predios")
-        if predios.empty:
-            st.info(txt.MSG_CADASTRAR_PREDIO_ANTES)
-        else:
         predios = get_data("predios") if tab_sala.open else None
         if predios is not None and predios.empty:
             st.info("Cadastre um prédio antes de adicionar salas.")
@@ -130,12 +126,8 @@ def _formularios_admin(reservas_pendentes):
     with tab_aprovacoes:
         st.subheader("Solicitações de reserva")
         if not reservas_pendentes:
-
             st.info(txt.MSG_NENHUMA_SOLICITACAO_PENDENTE)
-        for indice, reserva in enumerate(reservas_pendentes):
-            st.info("Nenhuma solicitação pendente.")
         for indice, reserva in enumerate(reservas_pendentes if tab_aprovacoes.open else []):
-
             with st.container(border=True):
                 st.subheader(reserva.get("sala", "Sala"))
                 st.write(f"Professor: {reserva.get('professor', '')}")
@@ -150,11 +142,6 @@ def _formularios_admin(reservas_pendentes):
                 st.caption(f"Solicitado em: {reserva.get('solicitado_em') or 'Não informado'}")
 
         st.subheader("Propostas de troca pendentes")
-
-        df_trocas = get_data("trocas")
-        pendentes = df_trocas[df_trocas["status"] == "Pendente"] if not df_trocas.empty else df_trocas
-        if pendentes.empty:
-            st.info(txt.MSG_NENHUMA_TROCA_PENDENTE)
         df_trocas = get_data("trocas") if tab_aprovacoes.open else None
         pendentes = (
             df_trocas[df_trocas["status"] == "Pendente"]
@@ -163,7 +150,7 @@ def _formularios_admin(reservas_pendentes):
         )
         if pendentes is None or pendentes.empty:
             if tab_aprovacoes.open:
-                st.info("Nenhuma solicitação de troca de sala pendente.")
+                st.info(txt.MSG_NENHUMA_TROCA_PENDENTE)
 
         else:
             df_agend = get_data("agendamentos")
@@ -214,16 +201,7 @@ def _formularios_admin(reservas_pendentes):
             else:
                 st.warning(txt.MSG_DEFINIR_URL_PUBLICA)
 
-        df_users = get_data("usuarios")
-        st.dataframe(df_users[["nome", "email", "tipo", "status"]], hide_index=True)
-        gerenciaveis = df_users[df_users["tipo"] != "Administrador"]
-        for _, conta in gerenciaveis.iterrows():
-            col_nome, col_acao = st.columns([5, 1])
-            col_nome.write(f"{conta['nome']} ({conta['tipo']}, {conta['status']})")
-            if col_acao.button("Excluir", key=f"excluir_{conta['nome']}"):
-                if remove_user(conta["nome"], usuario):
-                    st.success(txt.MSG_CONTA_EXCLUIDA.format(nome=conta['nome']))
-                    st.rerun()
+        if tab_contas.open:
             df_users = get_data("usuarios")
             st.dataframe(df_users[["nome", "email", "tipo", "status"]], hide_index=True)
             gerenciaveis = df_users[df_users["tipo"] != "Administrador"]
@@ -232,7 +210,7 @@ def _formularios_admin(reservas_pendentes):
                 col_nome.write(f"{conta['nome']} ({conta['tipo']}, {conta['status']})")
                 if col_acao.button("Excluir", key=f"excluir_{conta['nome']}"):
                     if remove_user(conta["nome"], usuario):
-                        st.success(f"{conta['nome']} excluído.")
+                        st.success(txt.MSG_CONTA_EXCLUIDA.format(nome=conta["nome"]))
                         st.rerun()
 
 
@@ -247,8 +225,6 @@ def _formularios_admin(reservas_pendentes):
                 st.success(txt.MSG_PREDIO_CADASTRADO.format(nome=nome_predio))
                 st.rerun()
             st.error(txt.MSG_PREDIO_INVALIDO)
-        st.dataframe(get_data("predios"), hide_index=True)
-            st.error("Informe um nome de prédio válido.")
         if tab_predios.open:
             st.dataframe(get_data("predios"), hide_index=True)
 
@@ -283,17 +259,8 @@ def _formularios_admin(reservas_pendentes):
                     ):
                         alterar_status_sala(sala["id_sala"], acao, usuario, tipo)
                         st.rerun()
-        else:
-            st.info(txt.MSG_NENHUMA_SALA)
-
-        st.subheader("Histórico de alterações")
-        historico = get_data("historico_alteracoes")
-        if historico.empty:
-            st.info(txt.MSG_NENHUMA_ALTERACAO)
-        else:
-            st.dataframe(historico.iloc[::-1], hide_index=True)
         elif tab_gerenciar.open:
-            st.info("Nenhuma sala cadastrada.")
+            st.info(txt.MSG_NENHUMA_SALA)
 
         st.subheader("Histórico de alterações")
         if tab_gerenciar.open:

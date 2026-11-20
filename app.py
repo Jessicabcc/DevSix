@@ -11,8 +11,6 @@ from models.db_manager import get_data, init_db
 
 from views import admin_view, registro_view, secretario_view, streamlit_pages, teacher_view
 from utils.versao import texto_rodape
-=======
-from views import admin_view, registro_view, secretario_view, teacher_view
 
 
 st.set_page_config(page_title="Agendamentos Unisapiens", page_icon="🏢", layout="wide")
