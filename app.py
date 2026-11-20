@@ -48,7 +48,7 @@ if "tipo" not in st.session_state:
 if "flash" not in st.session_state:
     st.session_state["flash"] = None
 
-
+# Lê um parâmetro da URL. Se vier como lista, usa o primeiro valor.
 def _param(nome, padrao=""):
     valor = st.query_params.get(nome, padrao)
     if isinstance(valor, list):
