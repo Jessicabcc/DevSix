@@ -1,3 +1,7 @@
 .venv
 key.json
 apresentacao.md
+__pycache__/
+*.pyc
+.streamlit/secrets.toml
+utils/secrets/

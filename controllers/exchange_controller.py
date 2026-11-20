@@ -1,7 +1,7 @@
 import pandas as pd
 import uuid
 
-from models.db_manager import get_data, save_data, troca_invalida, troca_ja_registrada
+from models.db_manager import get_data, registrar_historico, save_data, troca_invalida, troca_ja_registrada
 
 
 def create_exchange(id_reserva_1, id_reserva_2, reserva_1, reserva_2):
@@ -51,7 +51,6 @@ def approve_exchange(troca, reserva_1, reserva_2):
     trocas.loc[trocas['id_troca'] == troca['id_troca'], 'status'] = 'Aceito'
     save_data('agendamentos', agendamentos)
     save_data('trocas', trocas)
-    from models.db_manager import registrar_historico
     registrar_historico("Troca aceita", f"Troca {troca['id_troca']} aceita pela administração")
     return 'aprovada'
 
@@ -73,6 +72,5 @@ def respond_to_exchange(id_troca, resposta, usuario):
             return "aceita"
         return resultado
     update_exchange_status(id_troca, "Rejeitado")
-    from models.db_manager import registrar_historico
     registrar_historico("Troca rejeitada", f"Troca {id_troca} rejeitada pelo destinatário", usuario, "Professor")
     return "rejeitada"
