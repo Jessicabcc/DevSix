@@ -19,6 +19,7 @@ MSG_QR_EXPIRADO = (
 MSG_CREDENCIAIS_INVALIDAS = "Credenciais inválidas."
 
 # ---------- Registro por convite (registro_view.py) ----------
+MSG_CONVITE_AUSENTE = "Use um convite válido para criar sua conta."
 MSG_REGISTRO_DADOS_INVALIDOS = "Informe nome, e-mail válido e senha."
 MSG_CONVITE_EXPIRADO = "Este convite expirou."
 MSG_CONVITE_INVALIDO = "O convite é inválido ou já foi utilizado."
