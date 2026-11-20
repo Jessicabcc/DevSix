@@ -225,5 +225,5 @@ else:
     else:
         teacher_view.render(pagina, predio)
 
-        st.divider()
+st.divider()
 st.caption(texto_rodape())
