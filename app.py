@@ -85,6 +85,7 @@ def processar_acoes():
     acao = _param("acao")
     if not acao:
         return
+    # Lê a URL e executa a ação pedida.
 
     predio = _param("predio")
 
