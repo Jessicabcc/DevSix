@@ -108,3 +108,11 @@ A conta inicial só é criada quando o arquivo de usuários está vazio. Após o
 ## Observações
 
 Os arquivos CSV utilizados pelo sistema são lidos e gravados em UTF-8. Na leitura, o sistema aceita UTF-8 com BOM (`utf-8-sig`) para compatibilidade com arquivos existentes. Os dados CSV são armazenados na pasta `assets/data/`, então o sistema é simples e estático, ideal para fins acadêmicos e de demonstração.
+
+### Status Online/Offline
+
+Ao realizar o login, o sistema registra o usuário como `Online`. Ao utilizar o botão **Sair**, o sistema registra o usuário como `Offline`.
+
+O encerramento inesperado da aplicação, como fechar o navegador diretamente, perder a conexão ou ocorrer uma falha durante a sessão, pode impedir que o logout seja registrado. Nesses casos, a conta pode permanecer temporariamente marcada como `Online`.
+
+Por isso, o status representa o estado conhecido pelo sistema e não uma indicação de conexão em tempo real.
