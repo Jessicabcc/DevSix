@@ -56,7 +56,10 @@ def update_profile(nome_atual, novo_nome, imagem=None):
             "WEBP": "image/webp",
         }
         content_type = content_types[formato]
-        nome_foto = save_profile_photo(nome_foto, conteudo, content_type)
+        try:
+            nome_foto = save_profile_photo(nome_foto, conteudo, content_type)
+        except ValueError as exc:
+            return False, str(exc)
 
     usuario_atual = usuarios["nome"] == nome_atual
     usuarios.loc[usuario_atual, "nome"] = novo_nome

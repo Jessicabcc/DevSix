@@ -1,9 +1,11 @@
-from functools import lru_cache
+import logging
 import os
+from functools import lru_cache
 from pathlib import Path, PurePosixPath
 
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
+import httpx
 
 from utils.firebase_utils import (
     get_streamlit_firebase_secrets,
@@ -15,6 +17,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 UPLOADS_DIR = PROJECT_DIR / "assets" / "uploads"
 STORAGE_PREFIX = "profile_photos/"
 SUPABASE_PHOTO_MARKER = "supabase:"
+logger = logging.getLogger(__name__)
 
 
 def _supabase_settings():
@@ -40,6 +43,19 @@ def _supabase_settings():
         raise ValueError(
             "Configure supabase.url e supabase.secret_key nos Secrets do Streamlit."
         )
+    url = str(url).strip().rstrip("/")
+    for suffix in (
+        "/storage/v1/s3",
+        "/storage/v1",
+        "/rest/v1",
+        "/auth/v1",
+    ):
+        if url.lower().endswith(suffix):
+            url = url[: -len(suffix)]
+            break
+    if url.endswith(".storage.supabase.co"):
+        project_ref = url.split("//", 1)[-1].split(".", 1)[0]
+        url = f"https://{project_ref}.supabase.co"
     return url, secret_key, bucket
 
 
@@ -76,15 +92,55 @@ def save_profile_photo(filename, content, content_type):
     if settings is not None:
         _, _, bucket_name = settings
         object_path = f"{STORAGE_PREFIX}{filename}"
-        _get_supabase_client().storage.from_(bucket_name).upload(
-            object_path,
-            content,
-            file_options={
-                "content-type": content_type,
-                "cache-control": "3600",
-                "upsert": "false",
-            },
-        )
+        url, secret_key, _ = settings
+        try:
+            response = httpx.post(
+                f"{url}/storage/v1/object/{bucket_name}/{object_path}",
+                headers={
+                    "Authorization": f"Bearer {secret_key}",
+                    "apikey": secret_key,
+                    "Content-Type": content_type,
+                    "x-upsert": "false",
+                },
+                content=content,
+                timeout=30.0,
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            status_code = exc.response.status_code
+            logger.warning(
+                "Falha no upload para o Supabase Storage",
+                extra={
+                    "bucket": bucket_name,
+                    "status": status_code,
+                },
+            )
+            if status_code in (401, 403):
+                mensagem = (
+                    "A chave do Supabase não tem permissão para acessar o Storage."
+                )
+            elif status_code == 404:
+                mensagem = (
+                    f"O bucket '{bucket_name}' não existe no projeto Supabase configurado."
+                )
+            else:
+                mensagem = (
+                    f"Não foi possível enviar a foto ao Supabase Storage "
+                    f"(bucket '{bucket_name}')."
+                )
+            raise ValueError(
+                mensagem
+                + " Confirme o bucket, a chave secreta e as permissões nos Secrets."
+            ) from exc
+        except httpx.RequestError as exc:
+            logger.warning(
+                "Erro de rede no upload para o Supabase Storage",
+                extra={"bucket": bucket_name},
+            )
+            raise ValueError(
+                f"Não foi possível conectar ao Supabase Storage "
+                f"(bucket '{bucket_name}'). Confirme a URL e a chave nos Secrets."
+            ) from exc
         return f"{SUPABASE_PHOTO_MARKER}{object_path}"
 
     if get_streamlit_firebase_secrets() is not None:
