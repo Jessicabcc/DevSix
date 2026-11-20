@@ -17,6 +17,10 @@ MSG_QR_EXPIRADO = (
     "Gere outro no perfil do dispositivo conectado."
 )
 MSG_CREDENCIAIS_INVALIDAS = "Credenciais inválidas."
+MSG_CONTA_JA_ONLINE = (
+    "Esta conta já aparece Online em outro acesso. "
+    "Confirme sua identidade para continuar."
+)
 
 # ---------- Registro por convite (registro_view.py) ----------
 MSG_CONVITE_AUSENTE = "Use um convite válido para criar sua conta."
