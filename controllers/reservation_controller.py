@@ -7,6 +7,11 @@ from models.db_manager import get_data, registrar_historico, save_data
 
 
 def create_reservation(nome_sala, data_reserva, turno, professor, email="", predio=""):
+    nome_sala = str(nome_sala or "").strip()
+    predio = str(predio or "").strip()
+    turno = str(turno or "").strip()
+    professor = str(professor or "").strip()
+    email = str(email or "").strip()
     agendamentos = get_data('agendamentos')
     salas = get_data("salas")
     sala = salas[salas["nome_sala"] == nome_sala]
