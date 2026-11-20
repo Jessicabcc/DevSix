@@ -84,10 +84,15 @@ streamlit run app.py
 
 ## Usuários iniciais
 
-O sistema cria automaticamente um usuário administrador padrão:
+## Usuário inicial
+
+Na primeira execução, caso não exista nenhum usuário cadastrado, o sistema cria automaticamente uma conta de administrador padrão:
 
 - Usuário: `Suporte.ti`
-- Senha: `admin123`
+- Senha inicial: `admin123`
+- Tipo: `Administrador`
+
+A conta inicial só é criada quando o arquivo de usuários está vazio. Após o primeiro acesso, recomenda-se alterar a senha padrão.
 
 ## Regras de negócio importantes
 
@@ -102,4 +107,4 @@ O sistema cria automaticamente um usuário administrador padrão:
 
 ## Observações
 
-Os dados são armazenados em CSV na pasta `assets/data/`, então o sistema é simples e estático, ideal para fins acadêmicos e de demonstração.
+Os arquivos CSV utilizados pelo sistema são lidos e gravados em UTF-8. Na leitura, o sistema aceita UTF-8 com BOM (`utf-8-sig`) para compatibilidade com arquivos existentes. Os dados CSV são armazenados na pasta `assets/data/`, então o sistema é simples e estático, ideal para fins acadêmicos e de demonstração.
