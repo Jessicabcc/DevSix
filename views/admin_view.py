@@ -200,7 +200,7 @@ def _formularios_admin(reservas_pendentes):
         st.subheader("Cadastrar prédio")
         with st.form("form_predio"):
             nome_predio = st.text_input("Nome do prédio")
-            emoji_predio = st.text_input("Símbolo", value="🏢", max_chars=4)
+            emoji_predio = st.text_input("Símbolo", value="🏫", max_chars=4)
             criar = st.form_submit_button("Criar prédio", type="primary")
         if criar:
             if criar_predio(nome_predio, emoji_predio, usuario, tipo):

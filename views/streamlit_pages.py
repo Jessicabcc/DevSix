@@ -34,6 +34,10 @@ def _navegacao(usuario, tipo):
     elif pagina_atual == "perfil":
         marca = "MEU PERFIL TESTE PARA TEXTOS"
     elif tipo in ("Administrador", "Coordenador") and pagina_atual == "admin":
+        marca = "PAINEL ADMIN / ADMINISTRAÇÃO"
+    else:
+        marca = "INSTITUIÇÃO UNISAPIENS"
+=======
         marca = "PAINEL ADMIN / COORDENAÇÃO TESTE"
     else:
         marca = "UNISAPIENS TESTE PARA TEXTOS"
@@ -93,7 +97,7 @@ def _normalizar(texto):
 def pagina_inicio(usuario, tipo, predios, reservas, minhas_aprovadas):
     _navegacao(usuario, tipo)
     st.title("Reserve seu espaço acadêmico")
-    st.write("Selecione um prédio para consultar as salas e solicitar um agendamento.")
+    st.write("Selecione uma categoria para consultar as salas e solicitar um agendamento!")
 
     predios_ocultos = {"prediocentral", "anexo1", "anexo2anfiteatro", "anexo2antefiatro"}
     predios_visiveis = {
@@ -254,7 +258,7 @@ def pagina_predio(usuario, tipo, predio_nome, salas, pode_agendar):
                     })
                     st.rerun()
             else:
-                st.caption("Somente professores podem agendar salas.")
+                st.caption("Somente contas de professores podem agendar salas.")
 
 
 def pagina_reservas(usuario, tipo, reservas):

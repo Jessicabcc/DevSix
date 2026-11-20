@@ -79,7 +79,7 @@ pip install -r requirements.txt
 No diretório do projeto, execute:
 
 ```bash
-streamlit run app.py
+streamlit run app.pyst
 ```
 
 ## Usuários iniciais
