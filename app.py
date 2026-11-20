@@ -9,6 +9,7 @@ from controllers.qr_auth_controller import consume_login_token
 from controllers.reservation_controller import create_reservation, update_reservation_status
 from models.db_manager import get_data, init_db
 from views import admin_view, registro_view, secretario_view, streamlit_pages, teacher_view
+from utils.versao import texto_rodape
 
 st.set_page_config(page_title="Agendamentos UniSapiens Teste para textos", page_icon="🏫", layout="wide")
 init_db()
@@ -223,3 +224,6 @@ else:
         secretario_view.render(pagina)
     else:
         teacher_view.render(pagina, predio)
+
+        st.divider()
+st.caption(texto_rodape())
