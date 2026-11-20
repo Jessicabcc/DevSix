@@ -5,10 +5,12 @@ Aplicação em Python e Streamlit para consultar salas de um campus, solicitar r
 ## Funcionalidades
 
 - Login e perfis de administrador, coordenador, secretário e professor.
+- Autenticação por senha, acesso por QR Code e cadastro por convite.
 - Consulta de prédios e salas.
 - Solicitação, aprovação e rejeição de reservas.
-- Solicitação e gerenciamento de trocas entre reservas.
+- Solicitação e gerenciamento de trocas entre reservas, com validação.
 - Salas favoritas, histórico e relatórios.
+- Controle de status Online/Offline.
 - Persistência em Cloud Firestore.
 
 ## Requisitos

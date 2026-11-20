@@ -2,5 +2,8 @@
 key.json
 .env
 .env.*
-.streamlit/secrets.toml
 apresentacao.md
+__pycache__/
+*.pyc
+.streamlit/secrets.toml
+utils/secrets/

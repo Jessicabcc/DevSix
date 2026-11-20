@@ -2,7 +2,7 @@ import time
 
 import streamlit as st
 
-from controllers.campus_controller import calcular_metricas, listar_predios, ranking_ocupacao, reservas_enriquecidas
+from controllers.campus_controller import calcular_metricas, listar_predios, ranking_ocupacao, reservas_enriquecidas, salas_do_predio
 from controllers.exchange_controller import approve_exchange, update_exchange_status
 from controllers.user_controller import create_user, remove_user
 from models.db_manager import get_data
@@ -27,7 +27,6 @@ def render(pagina="admin"):
         streamlit_pages.pagina_inicio(usuario, tipo, predios, reservas, [])
         return
     if pagina == "predio":
-        from controllers.campus_controller import salas_do_predio
         predios = listar_predios()
         nome = st.query_params.get("predio", next(iter(predios), "Campus"))
         streamlit_pages.pagina_predio(usuario, tipo, nome, salas_do_predio(nome), pode_agendar=False)

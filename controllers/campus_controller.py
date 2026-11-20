@@ -157,7 +157,7 @@ def criar_predio(nome, emoji, usuario, tipo):
     chave = slug_predio(nome)
     if predios["id_predio"].eq(chave).any():
         chave = f"{chave}_{str(uuid.uuid4())[:4]}"
-    novo = pd.DataFrame([{"id_predio": chave, "nome": str(nome).strip(), "emoji": str(emoji or "🏢").strip()}])
+    novo = pd.DataFrame([{"id_predio": chave, "nome": str(nome).strip(), "emoji": str(emoji or "🏫").strip()}])
     save_data("predios", pd.concat([predios, novo], ignore_index=True))
     registrar_historico("Novo Prédio", f"Prédio '{nome}' cadastrado no sistema", usuario, tipo)
     return True

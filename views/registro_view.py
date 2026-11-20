@@ -13,7 +13,7 @@ def render():
             "invalido": "O convite é inválido ou já foi utilizado.",
             "ausente": "Use um convite válido para criar sua conta.",
         }
-        st.warning(mensagens[estado])
+        st.warning(mensagens.get(estado, "O convite é inválido ou já foi utilizado."))
         if st.button("Voltar para o login", icon=":material/login:"):
             st.query_params.clear()
             st.rerun()
