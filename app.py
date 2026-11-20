@@ -219,6 +219,7 @@ else:
     predio = _param("predio")
     tipo = st.session_state["tipo"]
 
+    # Cada tipo de usuário vê uma tela diferente.
     if tipo in ("Administrador", "Coordenador"):
         admin_view.render(pagina)
     elif tipo == "Secretário":
