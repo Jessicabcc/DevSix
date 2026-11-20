@@ -16,6 +16,7 @@ init_db()
 css_path = Path(__file__).resolve().parent / "style" / "style.css"
 eng_style_path = Path(__file__).resolve().parent / "style" / "eng_software_streamlit.css"
 identity_style_path = Path(__file__).resolve().parent / "style" / "identity_streamlit.css"
+# Se o CSS falhar, o app segue sem estilo.
 try:
     css = "\n".join(
         path.read_text(encoding="utf-8")
