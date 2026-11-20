@@ -4,12 +4,13 @@ Sistema desenvolvido em Python com Streamlit para gerenciar reservas de salas un
 
 ## Funcionalidades
 
-- Login por usuário e senha
+- Login por usuário e senha e acesso rápido por QR Code
 - Tipos de usuário:
   - Administrador
+  - Coordenador
   - Secretário
   - Professor
-- Cadastro e gerenciamento de usuários
+- Cadastro por link de convite e gerenciamento de usuários
 - Reservas de salas por data e turno
 - Aprovação ou rejeição de reservas
 - Solicitação de trocas entre reservas aprovadas
@@ -21,7 +22,7 @@ Sistema desenvolvido em Python com Streamlit para gerenciar reservas de salas un
 
 - `app.py` — ponto de entrada da aplicação.
   
-- `style.css` — estilos visuais da interface.
+- `style/style.css` — estilos visuais da interface.
   
 - `views/` — telas por perfil de usuário.
   
@@ -44,7 +45,7 @@ Sistema desenvolvido em Python com Streamlit para gerenciar reservas de salas un
 1. Acesse a pasta do projeto:
 
 ```bash
-cd pasta-projeto-2
+cd DevSix
 ```
 
 2. Crie um ambiente virtual, se desejar:
@@ -70,7 +71,7 @@ Windows CMD:
 4. Instale as dependências:
 
 ```bash
-pip install streamlit pandas
+pip install -r requirements.txt
 ```
 
 ## Execução
@@ -78,7 +79,7 @@ pip install streamlit pandas
 No diretório do projeto, execute:
 
 ```bash
-streamlit run app.pyst
+streamlit run app.py
 ```
 
 ## Usuários iniciais
@@ -101,4 +102,4 @@ O sistema cria automaticamente um usuário administrador padrão:
 
 ## Observações
 
-Os dados são armazenados em CSV na pasta `database/`, então o sistema é simples e estático, ideal para fins acadêmicos e de demonstração.
+Os dados são armazenados em CSV na pasta `assets/data/`, então o sistema é simples e estático, ideal para fins acadêmicos e de demonstração.

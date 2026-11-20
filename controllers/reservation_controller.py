@@ -3,7 +3,7 @@ import uuid
 
 import pandas as pd
 
-from models.db_manager import get_data, save_data
+from models.db_manager import get_data, registrar_historico, save_data
 
 
 def create_reservation(nome_sala, data_reserva, turno, professor, email="", predio=""):
@@ -50,6 +50,5 @@ def update_reservation_status(id_reserva, status, responsavel="", tipo_responsav
     agendamentos.loc[alvo, "responsavel"] = responsavel
     agendamentos.loc[alvo, "decidido_em"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     save_data('agendamentos', agendamentos)
-    from models.db_manager import registrar_historico
     registrar_historico(f"Reserva {status.lower()}", f"Reserva {id_reserva}", responsavel, tipo_responsavel)
     return True

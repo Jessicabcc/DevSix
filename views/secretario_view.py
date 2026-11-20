@@ -2,7 +2,7 @@ import time
 
 import streamlit as st
 
-from controllers.campus_controller import calcular_metricas, listar_predios, ranking_ocupacao, reservas_enriquecidas
+from controllers.campus_controller import calcular_metricas, listar_predios, ranking_ocupacao, reservas_enriquecidas, salas_do_predio
 from controllers.exchange_controller import approve_exchange, update_exchange_status
 from controllers.user_controller import create_user, remove_user
 from models.db_manager import get_data
@@ -29,7 +29,6 @@ def render(pagina="admin"):
         streamlit_pages.pagina_inicio(usuario, tipo, predios, reservas, [])
         return
     if pagina == "predio":
-        from controllers.campus_controller import salas_do_predio
         nome = st.query_params.get("predio", next(iter(predios), "Campus"))
         streamlit_pages.pagina_predio(usuario, tipo, nome, salas_do_predio(nome), pode_agendar=False)
         return
@@ -56,8 +55,12 @@ def _formularios_secretario():
         else:
             df_agend = get_data("agendamentos")
             for _, troca in pendentes.iterrows():
-                reserva_1 = df_agend[df_agend["id_reserva"] == troca["id_reserva_1"]].iloc[0]
-                reserva_2 = df_agend[df_agend["id_reserva"] == troca["id_reserva_2"]].iloc[0]
+                r1_df = df_agend[df_agend["id_reserva"] == troca["id_reserva_1"]]
+                r2_df = df_agend[df_agend["id_reserva"] == troca["id_reserva_2"]]
+                if r1_df.empty or r2_df.empty:
+                    continue
+                reserva_1 = r1_df.iloc[0]
+                reserva_2 = r2_df.iloc[0]
                 st.write("---")
                 st.write(f"**Reserva 1:** {reserva_1['nome_sala']} ({reserva_1['data']} - {reserva_1['turno']}) - {reserva_1['professor']}")
                 st.write(f"**Reserva 2:** {reserva_2['nome_sala']} ({reserva_2['data']} - {reserva_2['turno']}) - {reserva_2['professor']}")
