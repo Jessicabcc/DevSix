@@ -39,14 +39,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-if "usuario" not in st.session_state:
-    st.session_state["usuario"] = ""
-if "tipo" not in st.session_state:
-    st.session_state["tipo"] = ""
-if "flash" not in st.session_state:
-    st.session_state["flash"] = None
+valores_padrao = {"logged_in": False, "usuario": "", "tipo": "", "flash": None}
+for chave, valor in valores_padrao.items():
+    if chave not in st.session_state:
+        st.session_state[chave] = valor
 
 # Lê um parâmetro da URL. Se vier como lista, usa o primeiro valor.
 def _param(nome, padrao=""):
