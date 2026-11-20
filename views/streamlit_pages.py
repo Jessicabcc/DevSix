@@ -1,3 +1,4 @@
+from utils import mensagens as txt
 from datetime import date
 from html import escape
 from pathlib import Path
@@ -129,12 +130,12 @@ def pagina_inicio(usuario, tipo, predios, reservas, minhas_aprovadas):
                         args=({"page": "predio", "predio": nome},),
                     )
     else:
-        st.info("Nenhuma área disponível.")
+        st.info(txt.MSG_NENHUMA_AREA)
 
     st.header("Reservas recentes")
     reservas_visiveis = [reserva for reserva in reservas if reserva.get("status") != "Rejeitado"]
     if not reservas_visiveis:
-        st.info("Nenhuma reserva registrada.")
+        st.info(txt.MSG_NENHUMA_RESERVA_REGISTRADA)
 
     for indice, reserva in enumerate(reservas_visiveis):
         with st.container(border=True):
@@ -154,7 +155,7 @@ def pagina_inicio(usuario, tipo, predios, reservas, minhas_aprovadas):
             ):
                 with st.expander("Propor troca de sala"):
                     if not minhas_aprovadas:
-                        st.info("Você precisa ter uma reserva aprovada para propor uma troca.")
+                        st.info(txt.MSG_TROCA_SEM_RESERVA_APROVADA)
                     else:
                         opcoes = {
                             item["id_reserva"]: f"{item['sala']} ({item['data']} - {item['turno']})"
@@ -202,7 +203,7 @@ def pagina_predio(usuario, tipo, predio_nome, salas, pode_agendar):
     st.caption(f"Exibindo {len(filtradas)} de {len(salas)} sala(s)")
 
     if not filtradas:
-        st.info("Nenhuma sala corresponde aos filtros.")
+        st.info(txt.MSG_NENHUMA_SALA_NOS_FILTROS)
 
     favoritos = get_data("favoritos") if tipo == "Professor" else None
     for indice, sala in enumerate(filtradas):
@@ -238,7 +239,7 @@ def pagina_predio(usuario, tipo, predio_nome, salas, pode_agendar):
                     st.rerun()
 
             if str(sala.get("status")) == "Bloqueada":
-                st.warning("Esta sala está bloqueada para agendamentos.")
+                st.warning(txt.MSG_SALA_BLOQUEADA)
             elif pode_agendar:
                 with st.form(f"form_reserva_{sala.get('id_sala', indice)}"):
                     data_reserva = st.date_input(
@@ -271,7 +272,7 @@ def pagina_reservas(usuario, tipo, reservas):
     _navegacao(usuario, tipo)
     st.title("Minhas solicitações de agendamento")
     if not reservas:
-        st.info("Você ainda não possui solicitações de reserva.")
+        st.info(txt.MSG_SEM_SOLICITACOES_RESERVA)
         st.button(
             "Ir para o início",
             on_click=_set_query_params,
@@ -299,7 +300,7 @@ def pagina_notificacoes(usuario, tipo, notificacoes):
     st.title("Avisos e solicitações")
     st.write("Acompanhe as propostas de troca que envolvem suas reservas.")
     if not notificacoes:
-        st.info("Nenhuma proposta de troca no momento.")
+        st.info(txt.MSG_NENHUMA_PROPOSTA_TROCA)
         return
 
     for notificacao in notificacoes:
@@ -357,7 +358,7 @@ def pagina_perfil(usuario, tipo):
         if sucesso:
             st.session_state["usuario"] = resultado["nome"]
             st.session_state["foto"] = resultado["foto"]
-            st.success("Perfil atualizado.")
+            st.success(txt.MSG_PERFIL_ATUALIZADO)
             st.rerun()
         else:
             st.error(resultado)
@@ -376,9 +377,58 @@ def pagina_perfil(usuario, tipo):
             coluna_link.caption("Escaneie com a câmera do celular. O código expira em 2 minutos e só pode ser usado uma vez.")
             coluna_link.code(link_qr, language=None)
         else:
-            st.warning("Defina STREAMLIT_PUBLIC_URL para gerar um QR acessível por outros dispositivos.")
+            st.warning(txt.MSG_DEFINIR_URL_PUBLICA)
 
     if tipo == "Professor":
+        aba_reservas, aba_favoritas = st.tabs(["Reservas aprovadas", "Salas favoritas"])
+        with aba_reservas:
+            reservas = get_data("agendamentos")
+            aprovadas = reservas[(reservas["professor"] == usuario) & (reservas["status"] == "Aprovado")]
+            if aprovadas.empty:
+                st.info(txt.MSG_SEM_RESERVAS_APROVADAS)
+            else:
+                st.dataframe(aprovadas[["predio", "nome_sala", "data", "turno", "status"]], hide_index=True)
+        with aba_favoritas:
+            favoritas = favoritos_do_usuario(usuario)
+            if not favoritas:
+                st.info(txt.MSG_SEM_FAVORITOS)
+            for sala in favoritas:
+                with st.container(border=True):
+                    st.subheader(sala["nome_sala"])
+                    st.caption(f"{sala['predio_nome']} | {CATEGORIAS_SALA.get(sala['categoria'], 'Sala')}")
+                    st.write(sala["observacoes"] or "Sem observações adicionais.")
+                    st.button(
+                        "Remover dos favoritos",
+                        key=f"perfil_favorito_{sala['id_sala']}",
+                        icon=":material/star:",
+                        on_click=alternar_favorito,
+                        args=(usuario, sala["id_sala"], tipo),
+                    )
+                    if sala.get("status") != "Bloqueada":
+                        with st.form(f"reservar_favorita_{sala['id_sala']}"):
+                            data_reserva = st.date_input(
+                                "Data do agendamento",
+                                value=date.today(),
+                                min_value=date.today(),
+                                key=f"data_favorita_{sala['id_sala']}",
+                            )
+                            turno = st.selectbox(
+                                "Turno",
+                                ["Matutino", "Vespertino", "Noturno"],
+                                key=f"turno_favorita_{sala['id_sala']}",
+                            )
+                            enviar_reserva = st.form_submit_button("Solicitar reserva", type="primary")
+                        if enviar_reserva:
+                            _set_query_params({
+                                "page": "perfil",
+                                "acao": "reservar",
+                                "predio": sala["predio"],
+                                "sala": sala["nome_sala"],
+                                "data": data_reserva.isoformat(),
+                                "turno": turno,
+                            })
+                            st.rerun()
+=======
         aba_reservas, aba_favoritas = st.tabs(
             ["Reservas aprovadas", "Salas favoritas"],
             on_change="rerun",
@@ -444,6 +494,43 @@ def pagina_admin(usuario, tipo, pendentes, salas, predios):
         key="admin_aprovacoes_tabs",
     )
 
+
+    with aprovacoes:
+        if not pendentes:
+            st.info(txt.MSG_NENHUMA_SOLICITACAO_PENDENTE)
+        for indice, reserva in enumerate(pendentes):
+            with st.container(border=True):
+                st.subheader(reserva.get("sala", "Sala"))
+                st.write(f"Professor: {reserva.get('professor', '')}")
+                st.caption(f"{reserva.get('data', '')} | {reserva.get('turno', '')}")
+                aprovar, rejeitar = st.columns(2)
+                aprovar.button(
+                    "Aprovar",
+                    key=f"aprovar_{reserva.get('id_reserva', indice)}",
+                    icon=":material/check:",
+                    on_click=_set_query_params,
+                    args=({"page": "admin", "acao": "aprovar", "id": reserva.get("id_reserva")},),
+                )
+                rejeitar.button(
+                    "Rejeitar",
+                    key=f"rejeitar_{reserva.get('id_reserva', indice)}",
+                    icon=":material/close:",
+                    on_click=_set_query_params,
+                    args=({"page": "admin", "acao": "rejeitar", "id": reserva.get("id_reserva")},),
+                )
+                st.caption(f"Solicitado em: {reserva.get('solicitado_em') or 'Não informado'}")
+                if reserva.get("responsavel") or reserva.get("decidido_em"):
+                    st.caption(f"Decidido por {reserva.get('responsavel', '')} em {reserva.get('decidido_em', '')}")
+
+    with cadastro_salas:
+        st.caption("Prédios cadastrados: " + (", ".join(predios) if predios else "nenhum"))
+        if salas:
+            st.dataframe(
+                [{"Sala": sala.get("nome_sala"), "Prédio": sala.get("predio")} for sala in salas],
+                hide_index=True,
+            )
+        else:
+            st.info(txt.MSG_NENHUMA_SALA)
     if aprovacoes.open:
         with aprovacoes:
             if not pendentes:
@@ -514,7 +601,7 @@ def pagina_dashboard_professor(usuario, reservas):
             width="stretch",
         )
     else:
-        st.info("Você ainda não possui reservas aprovadas.")
+        st.info(txt.MSG_SEM_RESERVAS_APROVADAS)
 
     st.header("Salas favoritas")
     if favoritas:
@@ -523,7 +610,7 @@ def pagina_dashboard_professor(usuario, reservas):
                 st.subheader(sala.get("nome_sala", "Sala"))
                 st.caption(f"{sala.get('predio_nome', 'Campus')} | {CATEGORIAS_SALA.get(sala.get('categoria'), 'Sala')}")
     else:
-        st.info("Adicione salas aos favoritos para encontrá-las rapidamente.")
+        st.info(txt.MSG_ADICIONE_FAVORITOS)
 
 
 def pagina_dashboard(usuario, tipo, metricas, ranking, total_salas, total_predios):
@@ -559,12 +646,12 @@ def pagina_dashboard(usuario, tipo, metricas, ranking, total_salas, total_predio
                     color="red" if item["status_cor"] == "vermelho" else "green",
                 )
     else:
-        st.info("Nenhuma sala cadastrada até o momento.")
+        st.info(txt.MSG_NENHUMA_SALA_NO_MOMENTO)
 
     st.header("Alterações recentes")
     historico = get_data("historico_alteracoes").iloc[::-1].head(8)
     if historico.empty:
-        st.info("Nenhuma alteração estrutural registrada.")
+        st.info(txt.MSG_NENHUMA_ALTERACAO_ESTRUTURAL)
     else:
         st.dataframe(
             historico[["data_hora", "usuario", "tipo_usuario", "acao", "detalhes"]],
