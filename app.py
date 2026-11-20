@@ -55,7 +55,7 @@ def _param(nome, padrao=""):
         return valor[0] if valor else padrao
     return valor or padrao
 
-
+# Limpa a URL e define a página de destino.
 def _limpar_acao(page, **extras):
     st.query_params.clear()
     st.query_params["page"] = page
@@ -63,7 +63,7 @@ def _limpar_acao(page, **extras):
         if valor:
             st.query_params[chave] = valor
 
-
+# Guarda uma mensagem para mostrar na próxima tela.
 def _flash(tipo, mensagem):
     st.session_state["flash"] = (tipo, mensagem)
 
