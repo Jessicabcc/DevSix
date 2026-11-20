@@ -1,5 +1,7 @@
 .venv
 key.json
+.env
+.env.*
 apresentacao.md
 __pycache__/
 *.pyc

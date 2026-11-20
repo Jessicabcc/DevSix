@@ -30,12 +30,11 @@ from views import streamlit_pages
 def render(pagina="admin"):
     usuario = st.session_state.get("usuario", "")
     tipo = st.session_state.get("tipo", "")
-    predios = listar_predios()
-    reservas = reservas_enriquecidas()
-    salas_df = get_data("salas")
-    salas = salas_df.to_dict("records") if not salas_df.empty else []
 
     if pagina == "dashboard":
+        predios = listar_predios()
+        reservas = reservas_enriquecidas()
+        salas = get_data("salas").to_dict("records")
         streamlit_pages.pagina_dashboard(
             usuario,
             tipo,
@@ -46,11 +45,9 @@ def render(pagina="admin"):
         )
         return
 
-    if pagina == "perfil":
-        streamlit_pages.pagina_perfil(usuario, tipo)
-        return
-
     if pagina == "inicio":
+        predios = listar_predios()
+        reservas = reservas_enriquecidas()
         streamlit_pages.pagina_inicio(
             usuario,
             tipo,
@@ -62,10 +59,18 @@ def render(pagina="admin"):
 
     if pagina == "predio":
         from controllers.campus_controller import salas_do_predio
+        predios = listar_predios()
         nome = st.query_params.get("predio", next(iter(predios), "Campus"))
         streamlit_pages.pagina_predio(usuario, tipo, nome, salas_do_predio(nome), pode_agendar=False)
         return
 
+    if pagina == "perfil":
+        streamlit_pages.pagina_perfil(usuario, tipo)
+        return
+
+    predios = listar_predios()
+    reservas = reservas_enriquecidas()
+    salas = get_data("salas").to_dict("records")
     streamlit_pages._navegacao(usuario, tipo)
     st.title("Painel administrativo" if tipo == "Administrador" else "Painel de coordenação")
     st.caption("Escolha uma área para gerenciar o campus.")
@@ -75,9 +80,11 @@ def render(pagina="admin"):
 def _formularios_admin(reservas_pendentes):
     usuario = st.session_state.get("usuario", "")
     tipo = st.session_state.get("tipo", "")
-    tab_contas, tab_aprovacoes, tab_sala, tab_predios, tab_relatorio, tab_gerenciar = st.tabs([
-        "Gerar acessos", "Aprovações", "Adicionar sala", "Cadastrar prédio", "Relatório", "Gerenciar salas"
-    ])
+    tab_contas, tab_aprovacoes, tab_sala, tab_predios, tab_relatorio, tab_gerenciar = st.tabs(
+        ["Gerar acessos", "Aprovações", "Adicionar sala", "Cadastrar prédio", "Relatório", "Gerenciar salas"],
+        on_change="rerun",
+        key="admin_forms_tabs",
+    )
 
     with tab_sala:
         st.subheader("Cadastrar sala")
@@ -92,10 +99,10 @@ def _formularios_admin(reservas_pendentes):
                     st.rerun()
                 st.error("Informe um nome de prédio válido.")
 
-        predios = get_data("predios")
-        if predios.empty:
+        predios = get_data("predios") if tab_sala.open else None
+        if predios is not None and predios.empty:
             st.info("Cadastre um prédio antes de adicionar salas.")
-        else:
+        elif predios is not None:
             mapa_predios = dict(zip(predios["id_predio"], predios["nome"]))
             with st.form("form_sala"):
                 predio = st.selectbox("Prédio", list(mapa_predios), format_func=mapa_predios.get)
@@ -117,7 +124,7 @@ def _formularios_admin(reservas_pendentes):
         st.subheader("Solicitações de reserva")
         if not reservas_pendentes:
             st.info("Nenhuma solicitação pendente.")
-        for indice, reserva in enumerate(reservas_pendentes):
+        for indice, reserva in enumerate(reservas_pendentes if tab_aprovacoes.open else []):
             with st.container(border=True):
                 st.subheader(reserva.get("sala", "Sala"))
                 st.write(f"Professor: {reserva.get('professor', '')}")
@@ -132,10 +139,15 @@ def _formularios_admin(reservas_pendentes):
                 st.caption(f"Solicitado em: {reserva.get('solicitado_em') or 'Não informado'}")
 
         st.subheader("Propostas de troca pendentes")
-        df_trocas = get_data("trocas")
-        pendentes = df_trocas[df_trocas["status"] == "Pendente"] if not df_trocas.empty else df_trocas
-        if pendentes.empty:
-            st.info("Nenhuma solicitação de troca de sala pendente.")
+        df_trocas = get_data("trocas") if tab_aprovacoes.open else None
+        pendentes = (
+            df_trocas[df_trocas["status"] == "Pendente"]
+            if df_trocas is not None and not df_trocas.empty
+            else None
+        )
+        if pendentes is None or pendentes.empty:
+            if tab_aprovacoes.open:
+                st.info("Nenhuma solicitação de troca de sala pendente.")
         else:
             df_agend = get_data("agendamentos")
             for _, row in pendentes.iterrows():
@@ -175,7 +187,7 @@ def _formularios_admin(reservas_pendentes):
             else:
                 st.error("Seu perfil não pode gerar esse tipo de convite.")
         token = st.session_state.get("ultimo_convite")
-        if token:
+        if token and tab_contas.open:
             base_url = url_para_qr(st.context.url)
             if base_url:
                 link = f"{base_url}/?page=registro&token={token}"
@@ -185,16 +197,17 @@ def _formularios_admin(reservas_pendentes):
             else:
                 st.warning("Defina STREAMLIT_PUBLIC_URL para gerar um QR acessível por outros dispositivos.")
 
-        df_users = get_data("usuarios")
-        st.dataframe(df_users[["nome", "email", "tipo", "status"]], hide_index=True)
-        gerenciaveis = df_users[df_users["tipo"] != "Administrador"]
-        for _, conta in gerenciaveis.iterrows():
-            col_nome, col_acao = st.columns([5, 1])
-            col_nome.write(f"{conta['nome']} ({conta['tipo']}, {conta['status']})")
-            if col_acao.button("Excluir", key=f"excluir_{conta['nome']}"):
-                if remove_user(conta["nome"], usuario):
-                    st.success(f"{conta['nome']} excluído.")
-                    st.rerun()
+        if tab_contas.open:
+            df_users = get_data("usuarios")
+            st.dataframe(df_users[["nome", "email", "tipo", "status"]], hide_index=True)
+            gerenciaveis = df_users[df_users["tipo"] != "Administrador"]
+            for _, conta in gerenciaveis.iterrows():
+                col_nome, col_acao = st.columns([5, 1])
+                col_nome.write(f"{conta['nome']} ({conta['tipo']}, {conta['status']})")
+                if col_acao.button("Excluir", key=f"excluir_{conta['nome']}"):
+                    if remove_user(conta["nome"], usuario):
+                        st.success(f"{conta['nome']} excluído.")
+                        st.rerun()
 
     with tab_predios:
         st.subheader("Cadastrar prédio")
@@ -207,23 +220,25 @@ def _formularios_admin(reservas_pendentes):
                 st.success(f"Prédio {nome_predio} cadastrado.")
                 st.rerun()
             st.error("Informe um nome de prédio válido.")
-        st.dataframe(get_data("predios"), hide_index=True)
+        if tab_predios.open:
+            st.dataframe(get_data("predios"), hide_index=True)
 
     with tab_relatorio:
-        st.write("Exporte as reservas e o histórico de alterações do campus.")
-        pdf = _gerar_relatorio_pdf()
-        st.download_button(
-            "Baixar relatório PDF",
-            data=pdf,
-            file_name=f"relatorio_unisapiens_{datetime.now():%Y%m%d_%H%M}.pdf",
-            mime="application/pdf",
-            icon=":material/download:",
-        )
+        if tab_relatorio.open:
+            st.write("Exporte as reservas e o histórico de alterações do campus.")
+            pdf = _gerar_relatorio_pdf()
+            st.download_button(
+                "Baixar relatório PDF",
+                data=pdf,
+                file_name=f"relatorio_unisapiens_{datetime.now():%Y%m%d_%H%M}.pdf",
+                mime="application/pdf",
+                icon=":material/download:",
+            )
 
     with tab_gerenciar:
         st.subheader("Status das salas")
-        df_salas = get_data("salas")
-        if not df_salas.empty:
+        df_salas = get_data("salas") if tab_gerenciar.open else None
+        if df_salas is not None and not df_salas.empty:
             predios = get_data("predios")
             mapa_predios = dict(zip(predios["id_predio"], predios["nome"]))
             for _, sala in df_salas.iterrows():
@@ -239,15 +254,16 @@ def _formularios_admin(reservas_pendentes):
                     ):
                         alterar_status_sala(sala["id_sala"], acao, usuario, tipo)
                         st.rerun()
-        else:
+        elif tab_gerenciar.open:
             st.info("Nenhuma sala cadastrada.")
 
         st.subheader("Histórico de alterações")
-        historico = get_data("historico_alteracoes")
-        if historico.empty:
-            st.info("Nenhuma alteração registrada.")
-        else:
-            st.dataframe(historico.iloc[::-1], hide_index=True)
+        if tab_gerenciar.open:
+            historico = get_data("historico_alteracoes")
+            if historico.empty:
+                st.info("Nenhuma alteração registrada.")
+            else:
+                st.dataframe(historico.iloc[::-1], hide_index=True)
 
 
 def _gerar_relatorio_pdf():

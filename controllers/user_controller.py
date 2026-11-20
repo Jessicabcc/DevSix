@@ -3,7 +3,8 @@ import uuid
 
 from PIL import Image, UnidentifiedImageError
 
-from models.db_manager import PROJECT_DIR, add_user, delete_user, get_data, registrar_historico, save_data
+from models.db_manager import add_user, delete_user, get_data, registrar_historico, save_data
+from utils.profile_photo_storage import save_profile_photo
 
 
 def create_user(nome, senha, tipo, criado_por, email=""):
@@ -48,9 +49,14 @@ def update_profile(nome_atual, novo_nome, imagem=None):
         if not extensao:
             return False, "Use uma imagem PNG, JPG, GIF ou WEBP."
         nome_foto = f"{uuid.uuid4()}{extensao}"
-        destino = PROJECT_DIR / "assets" / "uploads" / nome_foto
-        destino.parent.mkdir(parents=True, exist_ok=True)
-        destino.write_bytes(conteudo)
+        content_types = {
+            "JPEG": "image/jpeg",
+            "PNG": "image/png",
+            "GIF": "image/gif",
+            "WEBP": "image/webp",
+        }
+        content_type = content_types[formato]
+        nome_foto = save_profile_photo(nome_foto, conteudo, content_type)
 
     usuario_atual = usuarios["nome"] == nome_atual
     usuarios.loc[usuario_atual, "nome"] = novo_nome
