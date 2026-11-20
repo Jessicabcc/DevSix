@@ -57,6 +57,7 @@ def get_firebase_app():
             "project_id": secrets["project_id"],
             "client_email": secrets["client_email"],
             "private_key": secrets["private_key"],
+            "token_uri": "https://oauth2.googleapis.com/token",
         })
         return firebase_admin.initialize_app(credential, options=options)
 
