@@ -108,6 +108,7 @@ def processar_acoes():
             _limpar_acao("predio", predio=predio)
             st.rerun()
             return
+        # Impede reservas em datas passadas.
         if data_reserva < date.today():
             _flash("error", "Não é permitido agendar salas em datas passadas.")
         elif create_reservation(
