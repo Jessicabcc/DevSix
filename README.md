@@ -102,4 +102,9 @@ O sistema cria automaticamente um usuário administrador padrão:
 ## Observações
 
 Os dados são armazenados em CSV na pasta `database/`, então o sistema é simples e estático, ideal para fins acadêmicos e de demonstração.
---
+---
+## Versão e ambiente
+
+A versão da aplicação fica em `utils/versao.py` (`APP_VERSAO`) e aparece no rodapé.
+O ambiente é definido pela variável `APP_ENV` (padrão: `desenvolvimento`).
+Ao lançar uma nova versão, altere apenas `APP_VERSAO`.
