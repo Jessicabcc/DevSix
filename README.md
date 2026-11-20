@@ -88,6 +88,8 @@ O sistema cria automaticamente um usuário administrador padrão:
 - Usuário: `Suporte.ti`
 - Senha: `admin123`
 
+** A senha padrão deve ser trocada fora de ambiente de demonstração. **
+
 ## Regras de negócio importantes
 
 - O professor só pode reservar salas a partir do dia atual
