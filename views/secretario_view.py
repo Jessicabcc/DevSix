@@ -7,7 +7,7 @@ from controllers.exchange_controller import approve_exchange, update_exchange_st
 from controllers.user_controller import create_user, remove_user
 from models.db_manager import get_data
 from views import streamlit_pages
-
+from utils import mensagens as txt
 
 def render(pagina="admin"):
     usuario = st.session_state.get("usuario", "")
@@ -52,7 +52,7 @@ def _formularios_secretario():
         df_trocas = get_data("trocas")
         pendentes = df_trocas[df_trocas["status"] == "Pendente"] if not df_trocas.empty else df_trocas
         if pendentes.empty:
-            st.info("Nenhuma solicitação de troca de sala pendente.")
+            st.info(txt.MSG_NENHUMA_TROCA_PENDENTE)
         else:
             df_agend = get_data("agendamentos")
             for _, troca in pendentes.iterrows():
@@ -73,7 +73,7 @@ def _formularios_secretario():
         df_agend = get_data("agendamentos")
         processadas = df_agend[df_agend["status"].isin(["Aprovado", "Rejeitado"])]
         if processadas.empty:
-            st.info("Nenhuma reserva processada ainda.")
+            st.info(txt.MSG_NENHUMA_RESERVA_PROCESSADA)
         else:
             st.dataframe(processadas[["nome_sala", "data", "turno", "professor", "status"]], hide_index=True)
 
@@ -83,13 +83,13 @@ def _formularios_secretario():
             senha_professor = st.text_input("Definir Senha", type="password")
             if st.form_submit_button("Cadastrar Professor", type="primary"):
                 if not nome_professor.strip() or not senha_professor:
-                    st.error("Informe um usuário e uma senha.")
+                    st.error(txt.MSG_USUARIO_SENHA_OBRIGATORIOS)
                 elif create_user(nome_professor, senha_professor, "Professor", st.session_state["usuario"]):
-                    st.success("Professor cadastrado com sucesso.")
+                    st.success(txt.MSG_PROFESSOR_CADASTRADO)
                     time.sleep(1)
                     st.rerun()
                 else:
-                    st.error("Usuário já existe ou você não tem permissão para esta ação.")
+                    st.error(txt.MSG_PROFESSOR_NAO_CADASTRADO)
 
         professores = get_data("usuarios")
         professores = professores[professores["tipo"] == "Professor"]
@@ -98,5 +98,5 @@ def _formularios_secretario():
             col_nome.write(f"{professor['nome']} ({professor['status']})")
             if col_acao.button("Excluir", key=f"secretario_excluir_{professor['nome']}"):
                 if remove_user(professor["nome"], st.session_state["usuario"]):
-                    st.success("Professor excluído com sucesso.")
+                    st.success(txt.MSG_PROFESSOR_EXCLUIDO)
                     st.rerun()

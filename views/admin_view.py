@@ -1,3 +1,4 @@
+from utils import mensagens as txt
 from datetime import datetime
 from html import escape
 from io import BytesIO
@@ -88,13 +89,13 @@ def _formularios_admin(reservas_pendentes):
                 criar_predio_sala = st.form_submit_button("Cadastrar prédio", type="primary")
             if criar_predio_sala:
                 if criar_predio(novo_predio, simbolo_predio, usuario, tipo):
-                    st.success(f"Prédio {novo_predio} cadastrado.")
+                    st.success(txt.MSG_PREDIO_CADASTRADO.format(nome=novo_predio))
                     st.rerun()
-                st.error("Informe um nome de prédio válido.")
+                st.error(txt.MSG_PREDIO_INVALIDO)
 
         predios = get_data("predios")
         if predios.empty:
-            st.info("Cadastre um prédio antes de adicionar salas.")
+            st.info(txt.MSG_CADASTRAR_PREDIO_ANTES)
         else:
             mapa_predios = dict(zip(predios["id_predio"], predios["nome"]))
             with st.form("form_sala"):
@@ -109,14 +110,14 @@ def _formularios_admin(reservas_pendentes):
                 enviar_sala = st.form_submit_button("Criar sala", type="primary")
             if enviar_sala:
                 if criar_sala(predio, nome_sala, observacoes, categoria, usuario, tipo):
-                    st.success(f"Sala {nome_sala} cadastrada.")
+                    st.success(txt.MSG_SALA_CADASTRADA.format(nome=nome_sala))
                     st.rerun()
-                st.error("Informe um nome único e selecione um prédio válido.")
+                st.error(txt.MSG_SALA_INVALIDA)
 
     with tab_aprovacoes:
         st.subheader("Solicitações de reserva")
         if not reservas_pendentes:
-            st.info("Nenhuma solicitação pendente.")
+            st.info(txt.MSG_NENHUMA_SOLICITACAO_PENDENTE)
         for indice, reserva in enumerate(reservas_pendentes):
             with st.container(border=True):
                 st.subheader(reserva.get("sala", "Sala"))
@@ -135,7 +136,7 @@ def _formularios_admin(reservas_pendentes):
         df_trocas = get_data("trocas")
         pendentes = df_trocas[df_trocas["status"] == "Pendente"] if not df_trocas.empty else df_trocas
         if pendentes.empty:
-            st.info("Nenhuma solicitação de troca de sala pendente.")
+            st.info(txt.MSG_NENHUMA_TROCA_PENDENTE)
         else:
             df_agend = get_data("agendamentos")
             for _, row in pendentes.iterrows():
@@ -150,9 +151,9 @@ def _formularios_admin(reservas_pendentes):
                     if aprovar.button("Aceitar troca", key=f"t_apr_{row['id_troca']}"):
                         resultado = approve_exchange(row, primeira.iloc[0].to_dict(), segunda.iloc[0].to_dict())
                         if resultado == "aprovada":
-                            st.success("Titularidade das reservas atualizada.")
+                            st.success(txt.MSG_TITULARIDADE_ATUALIZADA)
                         else:
-                            st.error("Não foi possível aplicar a troca.")
+                            st.error(txt.MSG_TROCA_NAO_APLICADA)
                         st.rerun()
                     if rejeitar.button("Rejeitar troca", key=f"t_rej_{row['id_troca']}"):
                         update_exchange_status(row["id_troca"], "Rejeitado")
@@ -171,9 +172,9 @@ def _formularios_admin(reservas_pendentes):
             convite = create_invitation(papel, usuario, tipo)
             if convite:
                 st.session_state["ultimo_convite"] = convite["token"]
-                st.success("Convite criado. Ele expira em 15 minutos e só pode ser usado uma vez.")
+                st.success(txt.MSG_CONVITE_CRIADO)
             else:
-                st.error("Seu perfil não pode gerar esse tipo de convite.")
+                st.error(txt.MSG_CONVITE_SEM_PERMISSAO)
         token = st.session_state.get("ultimo_convite")
         if token:
             base_url = url_para_qr(st.context.url)
@@ -183,7 +184,7 @@ def _formularios_admin(reservas_pendentes):
                 st.caption("Escaneie para abrir o cadastro. O convite expira em 15 minutos e só pode ser usado uma vez.")
                 st.code(link, language=None)
             else:
-                st.warning("Defina STREAMLIT_PUBLIC_URL para gerar um QR acessível por outros dispositivos.")
+                st.warning(txt.MSG_DEFINIR_URL_PUBLICA)
 
         df_users = get_data("usuarios")
         st.dataframe(df_users[["nome", "email", "tipo", "status"]], hide_index=True)
@@ -193,7 +194,7 @@ def _formularios_admin(reservas_pendentes):
             col_nome.write(f"{conta['nome']} ({conta['tipo']}, {conta['status']})")
             if col_acao.button("Excluir", key=f"excluir_{conta['nome']}"):
                 if remove_user(conta["nome"], usuario):
-                    st.success(f"{conta['nome']} excluído.")
+                    st.success(txt.MSG_CONTA_EXCLUIDA.format(nome=conta['nome']))
                     st.rerun()
 
     with tab_predios:
@@ -204,9 +205,9 @@ def _formularios_admin(reservas_pendentes):
             criar = st.form_submit_button("Criar prédio", type="primary")
         if criar:
             if criar_predio(nome_predio, emoji_predio, usuario, tipo):
-                st.success(f"Prédio {nome_predio} cadastrado.")
+                st.success(txt.MSG_PREDIO_CADASTRADO.format(nome=nome_predio))
                 st.rerun()
-            st.error("Informe um nome de prédio válido.")
+            st.error(txt.MSG_PREDIO_INVALIDO)
         st.dataframe(get_data("predios"), hide_index=True)
 
     with tab_relatorio:
@@ -240,12 +241,12 @@ def _formularios_admin(reservas_pendentes):
                         alterar_status_sala(sala["id_sala"], acao, usuario, tipo)
                         st.rerun()
         else:
-            st.info("Nenhuma sala cadastrada.")
+            st.info(txt.MSG_NENHUMA_SALA)
 
         st.subheader("Histórico de alterações")
         historico = get_data("historico_alteracoes")
         if historico.empty:
-            st.info("Nenhuma alteração registrada.")
+            st.info(txt.MSG_NENHUMA_ALTERACAO)
         else:
             st.dataframe(historico.iloc[::-1], hide_index=True)
 
