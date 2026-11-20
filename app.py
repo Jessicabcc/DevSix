@@ -10,6 +10,16 @@ from controllers.reservation_controller import create_reservation, update_reserv
 from models.db_manager import get_data, init_db
 from views import admin_view, registro_view, secretario_view, teacher_view
 
+from views.ui_text import (
+    MSG_RESERVA_DATA_INVALIDA,
+    MSG_RESERVA_DATA_PASSADA,
+    MSG_RESERVA_SUCESSO,
+    MSG_RESERVA_CONFLITO,
+    MSG_TROCA_INVALIDA,
+    MSG_TROCA_DUPLICADA,
+    MSG_TROCA_SUCESSO,
+)
+
 st.set_page_config(page_title="Agendamentos UniSapiens", page_icon="🏫", layout="wide")
 init_db()
 
@@ -102,12 +112,12 @@ def processar_acoes():
         try:
             data_reserva = date.fromisoformat(data_txt)
         except ValueError:
-            _flash("error", "Data inválida para a reserva.")
+            _flash("error", MSG_RESERVA_DATA_INVALIDA)
             _limpar_acao("predio", predio=predio)
             st.rerun()
             return
         if data_reserva < date.today():
-            _flash("error", "Não é permitido agendar salas em datas passadas.")
+            _flash("error", MSG_RESERVA_DATA_PASSADA)
         elif create_reservation(
             sala,
             data_reserva,
@@ -116,9 +126,9 @@ def processar_acoes():
             email=st.session_state.get("email", ""),
             predio=predio,
         ):
-            _flash("success", "Sua reserva foi enviada para aprovação.")
+            _flash("success", MSG_RESERVA_SUCESSO)
         else:
-            _flash("error", "Esta sala já está reservada ou pendente para este dia e turno.")
+            _flash("error", MSG_RESERVA_CONFLITO)
         _limpar_acao("predio", predio=predio)
         st.rerun()
 
@@ -133,11 +143,11 @@ def processar_acoes():
         else:
             resultado = create_exchange(id_alvo, id_origem, alvo.iloc[0].to_dict(), origem.iloc[0].to_dict())
             if resultado == "invalida":
-                _flash("warning", "Troca inválida: mesma sala, dia e turno.")
+                _flash("warning", MSG_TROCA_INVALIDA)
             elif resultado == "duplicada":
-                _flash("warning", "Essa troca já foi registrada.")
+                _flash("warning", MSG_TROCA_DUPLICADA)
             else:
-                _flash("success", "A proposta de troca foi enviada para análise.")
+                _flash("success", MSG_TROCA_SUCESSO)
         _limpar_acao("inicio")
         st.rerun()
 
