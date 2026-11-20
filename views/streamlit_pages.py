@@ -428,63 +428,6 @@ def pagina_perfil(usuario, tipo):
                                 "turno": turno,
                             })
                             st.rerun()
-=======
-        aba_reservas, aba_favoritas = st.tabs(
-            ["Reservas aprovadas", "Salas favoritas"],
-            on_change="rerun",
-            key="perfil_reservas_tabs",
-        )
-        if aba_reservas.open:
-            with aba_reservas:
-                reservas = get_data("agendamentos")
-                aprovadas = reservas[(reservas["professor"] == usuario) & (reservas["status"] == "Aprovado")]
-                if aprovadas.empty:
-                    st.info("Você ainda não possui reservas aprovadas.")
-                else:
-                    st.dataframe(aprovadas[["predio", "nome_sala", "data", "turno", "status"]], hide_index=True)
-        if aba_favoritas.open:
-            with aba_favoritas:
-                favoritas = favoritos_do_usuario(usuario)
-                if not favoritas:
-                    st.info("Você ainda não favoritou nenhuma sala.")
-                for sala in favoritas:
-                    with st.container(border=True):
-                        st.subheader(sala["nome_sala"])
-                        st.caption(f"{sala['predio_nome']} | {CATEGORIAS_SALA.get(sala['categoria'], 'Sala')}")
-                        st.write(sala["observacoes"] or "Sem observações adicionais.")
-                        st.button(
-                            "Remover dos favoritos",
-                            key=f"perfil_favorito_{sala['id_sala']}",
-                            icon=":material/star:",
-                            on_click=alternar_favorito,
-                            args=(usuario, sala["id_sala"], tipo),
-                        )
-                        if sala.get("status") != "Bloqueada":
-                            with st.form(f"reservar_favorita_{sala['id_sala']}"):
-                                data_reserva = st.date_input(
-                                    "Data do agendamento",
-                                    value=date.today(),
-                                    min_value=date.today(),
-                                    key=f"data_favorita_{sala['id_sala']}",
-                                )
-                                turno = st.selectbox(
-                                    "Turno",
-                                    ["Matutino", "Vespertino", "Noturno"],
-                                    key=f"turno_favorita_{sala['id_sala']}",
-                                )
-                                enviar_reserva = st.form_submit_button("Solicitar reserva", type="primary")
-                            if enviar_reserva:
-                                _set_query_params({
-                                    "page": "perfil",
-                                    "acao": "reservar",
-                                    "predio": sala["predio"],
-                                    "sala": sala["nome_sala"],
-                                    "data": data_reserva.isoformat(),
-                                    "turno": turno,
-                                })
-                                st.rerun()
-
-
 def pagina_admin(usuario, tipo, pendentes, salas, predios):
     _navegacao(usuario, tipo)
     st.title("Painel administrativo" if tipo == "Administrador" else "Painel da secretaria")

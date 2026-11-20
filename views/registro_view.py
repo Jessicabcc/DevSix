@@ -15,8 +15,6 @@ def render():
         }
 
         st.warning(avisos[estado])
-=======
-        st.warning(mensagens.get(estado, "O convite é inválido ou já foi utilizado."))
 
         if st.button("Voltar para o login", icon=":material/login:"):
             st.query_params.clear()
