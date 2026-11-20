@@ -9,6 +9,7 @@ from controllers.campus_controller import alternar_favorito, favoritos_do_usuari
 from controllers.qr_auth_controller import create_login_token, gerar_qr_png, url_para_qr
 from controllers.user_controller import update_profile
 from models.db_manager import PROJECT_DIR, get_data
+from config import APP_VERSION
 
 from views.ui_text import (
     MSG_NENHUMA_AREA,

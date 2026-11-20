@@ -9,6 +9,7 @@ from controllers.qr_auth_controller import consume_login_token
 from controllers.reservation_controller import create_reservation, update_reservation_status
 from models.db_manager import get_data, init_db
 from views import admin_view, registro_view, secretario_view, teacher_view
+from config import APP_VERSION
 
 from views.ui_text import (
     MSG_RESERVA_DATA_INVALIDA,
@@ -212,7 +213,7 @@ if not st.session_state["logged_in"]:
                             _finalizar_login(credencial)
                     else:
                         st.error("Credenciais inválidas.")
-            st.caption("Cadastros disponíveis por convite | UniSapiens")
+            st.caption(f"Cadastros disponíveis por convite | UniSapiens v{APP_VERSION}")
         credencial_pendente = st.session_state.get("login_pendente")
         if credencial_pendente:
             st.warning(
