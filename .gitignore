@@ -1,3 +1,6 @@
 .venv
 key.json
+.env
+.env.*
+.streamlit/secrets.toml
 apresentacao.md
