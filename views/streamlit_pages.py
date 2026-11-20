@@ -381,7 +381,6 @@ def pagina_perfil(usuario, tipo):
             coluna_qr, coluna_link = st.columns([1, 3])
             coluna_qr.image(gerar_qr_png(link_qr), width=168)
             coluna_link.caption("Escaneie com a câmera do celular. O código expira em 2 minutos e só pode ser usado uma vez.")
-            coluna_link.code(link_qr, language=None)
         else:
             st.warning("Defina STREAMLIT_PUBLIC_URL para gerar um QR acessível por outros dispositivos.")
 
