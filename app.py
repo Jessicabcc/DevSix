@@ -12,13 +12,16 @@ from models.db_manager import get_data, init_db
 from views import admin_view, registro_view, secretario_view, streamlit_pages, teacher_view
 from utils.versao import texto_rodape
 
-
+st.set_page_config(page_title="Agendamentos UniSapiens.", page_icon="🏫", layout="wide")
+=======
 st.set_page_config(page_title="Agendamentos Unisapiens", page_icon="🏢", layout="wide")
+
 init_db()
 
 css_path = Path(__file__).resolve().parent / "style" / "style.css"
 eng_style_path = Path(__file__).resolve().parent / "style" / "eng_software_streamlit.css"
 identity_style_path = Path(__file__).resolve().parent / "style" / "identity_streamlit.css"
+# Se o CSS falhar, o app segue sem estilo.
 try:
     css = "\n".join(
         path.read_text(encoding="utf-8")
@@ -42,23 +45,21 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-if "usuario" not in st.session_state:
-    st.session_state["usuario"] = ""
-if "tipo" not in st.session_state:
-    st.session_state["tipo"] = ""
-if "flash" not in st.session_state:
-    st.session_state["flash"] = None
+# Teste de commit.
 
+valores_padrao = {"logged_in": False, "usuario": "", "tipo": "", "flash": None}
+for chave, valor in valores_padrao.items():
+    if chave not in st.session_state:
+        st.session_state[chave] = valor
 
+# Lê um parâmetro da URL. Se vier como lista, usa o primeiro valor.
 def _param(nome, padrao=""):
     valor = st.query_params.get(nome, padrao)
     if isinstance(valor, list):
         return valor[0] if valor else padrao
     return valor or padrao
 
-
+# Limpa a URL e define a página de destino.
 def _limpar_acao(page, **extras):
     st.query_params.clear()
     st.query_params["page"] = page
@@ -66,12 +67,11 @@ def _limpar_acao(page, **extras):
         if valor:
             st.query_params[chave] = valor
 
-
+# Guarda uma mensagem para mostrar na próxima tela.
 def _flash(tipo, mensagem):
     st.session_state["flash"] = (tipo, mensagem)
 
 if ("login_pendente" in st.session_state) and st.session_state["login_pendente"]:()
-
 
 def _finalizar_login(credencial):
     st.session_state.pop("login_pendente", None)
@@ -90,6 +90,7 @@ def processar_acoes():
     acao = _param("acao")
     if not acao:
         return
+    # Lê a URL e executa a ação pedida.
 
     predio = _param("predio")
 
@@ -112,6 +113,7 @@ def processar_acoes():
             _limpar_acao("predio", predio=predio)
             st.rerun()
             return
+        # Impede reservas em datas passadas.
         if data_reserva < date.today():
             _flash("error", "Não é permitido agendar salas em datas passadas.")
         elif create_reservation(
@@ -223,6 +225,7 @@ else:
     predio = _param("predio")
     tipo = st.session_state["tipo"]
 
+    # Cada tipo de usuário vê uma tela diferente.
     if tipo in ("Administrador", "Coordenador"):
         admin_view.render(pagina)
     elif tipo == "Secretário":

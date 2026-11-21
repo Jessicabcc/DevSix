@@ -1,5 +1,8 @@
 .venv
 key.json
+apresentacao.md
+.vs/
+=======
 .env
 .env.*
 apresentacao.md
