@@ -2,15 +2,20 @@ from datetime import date
 from pathlib import Path
 
 import streamlit as st
-
+from utils import mensagens as txt
 from controllers.auth_controller import authenticate, login, logout as controller_logout
 from controllers.exchange_controller import create_exchange, respond_to_exchange
 from controllers.qr_auth_controller import consume_login_token
 from controllers.reservation_controller import create_reservation, update_reservation_status
 from models.db_manager import get_data, init_db
+
 from views import admin_view, registro_view, secretario_view, streamlit_pages, teacher_view
+from utils.versao import texto_rodape
 
 st.set_page_config(page_title="Agendamentos UniSapiens.", page_icon="🏫", layout="wide")
+=======
+st.set_page_config(page_title="Agendamentos Unisapiens", page_icon="🏢", layout="wide")
+
 init_db()
 
 css_path = Path(__file__).resolve().parent / "style" / "style.css"
@@ -66,6 +71,7 @@ def _limpar_acao(page, **extras):
 def _flash(tipo, mensagem):
     st.session_state["flash"] = (tipo, mensagem)
 
+if ("login_pendente" in st.session_state) and st.session_state["login_pendente"]:()
 
 def _finalizar_login(credencial):
     st.session_state.pop("login_pendente", None)
@@ -181,7 +187,7 @@ if not st.session_state["logged_in"]:
         if credencial:
             _finalizar_login(credencial)
         st.title("Acesso pelo QR Code")
-        st.error("Este QR Code expirou ou já foi utilizado. Gere outro no perfil do dispositivo conectado.")
+        st.error(txt.MSG_QR_EXPIRADO)
         if st.button("Voltar para o login", icon=":material/login:"):
             st.query_params.clear()
             st.rerun()
@@ -203,13 +209,11 @@ if not st.session_state["logged_in"]:
                         else:
                             _finalizar_login(credencial)
                     else:
-                        st.error("Credenciais inválidas.")
+                        st.error(txt.MSG_CREDENCIAIS_INVALIDAS)
             st.caption("Cadastros disponíveis por convite | UniSapiens")
         credencial_pendente = st.session_state.get("login_pendente")
         if credencial_pendente:
-            st.warning(
-                "Esta conta já aparece Online em outro acesso. Confirme sua identidade para continuar."
-            )
+            st.warning(txt.MSG_CONTA_JA_ONLINE)
             confirmar, cancelar = st.columns(2)
             if confirmar.button("Confirmar identidade e entrar", type="primary"):
                 _finalizar_login(credencial_pendente)
@@ -228,3 +232,6 @@ else:
         secretario_view.render(pagina)
     else:
         teacher_view.render(pagina, predio)
+
+st.divider()
+st.caption(texto_rodape())

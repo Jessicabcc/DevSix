@@ -2,3 +2,11 @@
 key.json
 apresentacao.md
 .vs/
+=======
+.env
+.env.*
+apresentacao.md
+__pycache__/
+*.pyc
+.streamlit/secrets.toml
+utils/secrets/

@@ -1,8 +1,16 @@
 from datetime import datetime
 from pathlib import Path
-import uuid
 
 import pandas as pd
+import streamlit as st
+
+from models.firestore_store import (
+    MAX_BATCH_WRITES,
+    MIGRATION_COLLECTION,
+    MIGRATION_DOCUMENT,
+    build_firestore_documents,
+)
+from utils.firebase_utils import get_firestore_client
 
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -100,76 +108,24 @@ def _read_csv(path, table):
     return normalize_table(table, df)
 
 
-def _import_legacy_data():
-    marcador = DB_DIR / ".legacy_imported"
-    if not LEGACY_DIR.exists():
-        return
-
-    arquivos = LEGACY_FILES.items()
-    if marcador.exists():
-        arquivos = [("historico_alteracoes", LEGACY_FILES["historico_alteracoes"])]
-
-    for table, filename in arquivos:
-        source_path = LEGACY_DIR / filename
-        if not source_path.exists():
-            continue
-        try:
-            legado = pd.read_csv(source_path, encoding="utf-8-sig", dtype=str).fillna("")
-        except pd.errors.EmptyDataError:
-            continue
-
-        if table == "historico_alteracoes" and "data_hora" not in legado.columns:
-            legado = pd.read_csv(
-                source_path,
-                header=None,
-                names=REQUIRED_COLUMNS[table],
-                encoding="utf-8-sig",
-                dtype=str,
-            ).fillna("")
-
-        if table == "agendamentos" and "sala" in legado.columns:
-            legado = legado.rename(columns={"sala": "nome_sala"})
-        elif table == "trocas":
-            legado = legado.rename(columns={
-                "id_reserva_alvo": "id_reserva_1",
-                "id_reserva_origem": "id_reserva_2",
-                "status_troca": "status",
-            })
-        legado = normalize_table(table, legado)
-        atual = _read_csv(FILES[table], table)
-        chaves = IMPORT_KEYS[table]
-        existentes = {
-            tuple(str(valor).strip().casefold() for valor in registro)
-            for registro in atual[chaves].itertuples(index=False, name=None)
-        }
-        novos = []
-        for registro in legado.to_dict("records"):
-            chave = tuple(str(registro.get(coluna, "")).strip().casefold() for coluna in chaves)
-            if not any(chave) or chave in existentes:
-                continue
-            existentes.add(chave)
-            novos.append(registro)
-        if novos:
-            atual = pd.concat([atual, pd.DataFrame(novos)], ignore_index=True)
-        save_data(table, atual)
-
-    marcador.write_text(datetime.now().isoformat(), encoding="utf-8")
+@st.cache_data(ttl=60, max_entries=1, show_spinner=False)
+def _ensure_firestore_migration():
+    migration_ref = (
+        get_firestore_client()
+        .collection(MIGRATION_COLLECTION)
+        .document(MIGRATION_DOCUMENT)
+    )
+    migration = migration_ref.get()
+    migration_data = migration.to_dict() if migration.exists else None
+    if not migration_data or not migration_data.get("completed"):
+        raise RuntimeError(
+            "A migração CSV para Firestore não foi concluída. "
+            "Execute `python -m models.firestore_migration` antes de iniciar o app."
+        )
 
 
 def init_db():
-    DB_DIR.mkdir(parents=True, exist_ok=True)
-    for table, path in FILES.items():
-        if not path.exists():
-            pd.DataFrame(columns=REQUIRED_COLUMNS[table]).to_csv(path, index=False, encoding="utf-8")
-        else:
-            try:
-                columns = pd.read_csv(path, nrows=0, encoding="utf-8-sig").columns.tolist()
-            except pd.errors.EmptyDataError:
-                columns = []
-            if columns != REQUIRED_COLUMNS[table]:
-                save_data(table, _read_csv(path, table))
-
-    _import_legacy_data()
+    _ensure_firestore_migration()
 
     salas = get_data("salas")
     predios = get_data("predios")
@@ -237,19 +193,70 @@ def troca_ja_registrada(id_reserva_1, id_reserva_2, df_trocas=None):
     return False
 
 
+@st.cache_data(ttl=5, max_entries=len(REQUIRED_COLUMNS), show_spinner=False)
 def get_data(table):
-    df = _read_csv(FILES[table], table)
+    if table not in REQUIRED_COLUMNS:
+        raise KeyError(f"Tabela desconhecida: {table}")
+
+    registros = []
+    for snapshot in get_firestore_client().collection(table).stream():
+        documento = snapshot.to_dict() or {}
+        ordem = documento.pop("__row_order", None)
+        documento.pop("__migration_source", None)
+        registro = {
+            coluna: "" if documento.get(coluna) is None else str(documento.get(coluna, ""))
+            for coluna in REQUIRED_COLUMNS[table]
+        }
+        registros.append((ordem, snapshot.id, registro))
+
+    registros.sort(key=lambda item: (
+        item[0] if isinstance(item[0], (int, float)) else float("inf"),
+        item[1],
+    ))
+    df = normalize_table(
+        table,
+        pd.DataFrame([registro for _, _, registro in registros]),
+    )
     if table == 'trocas':
         df = _deduplicate_trocas(df)
     return df
 
-
 def save_data(table, df):
+    if table not in REQUIRED_COLUMNS:
+        raise KeyError(f"Tabela desconhecida: {table}")
+
     df = normalize_table(table, df)
     if table == 'trocas':
         df = _deduplicate_trocas(df)
-    DB_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_csv(FILES[table], index=False, encoding="utf-8")
+
+    client = get_firestore_client()
+    collection = client.collection(table)
+    records = df.to_dict("records")
+    documents = dict(
+        build_firestore_documents(table, records, IMPORT_KEYS[table])
+    )
+    existing_ids = {snapshot.id for snapshot in collection.stream()}
+    operations = [
+        ("set", document_id, data)
+        for document_id, data in documents.items()
+    ]
+    operations.extend(
+        ("delete", document_id, None)
+        for document_id in existing_ids - set(documents)
+    )
+
+    try:
+        for offset in range(0, len(operations), MAX_BATCH_WRITES):
+            batch = client.batch()
+            for operation, document_id, data in operations[offset:offset + MAX_BATCH_WRITES]:
+                document_ref = collection.document(document_id)
+                if operation == "set":
+                    batch.set(document_ref, data)
+                else:
+                    batch.delete(document_ref)
+            batch.commit()
+    finally:
+        get_data.clear()
 
 def add_user(nome, senha, tipo, criado_por=None, email="", foto=""):
     from utils.password_utils import hash_password
