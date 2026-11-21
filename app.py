@@ -40,6 +40,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Teste de commit.
+
 valores_padrao = {"logged_in": False, "usuario": "", "tipo": "", "flash": None}
 for chave, valor in valores_padrao.items():
     if chave not in st.session_state:
