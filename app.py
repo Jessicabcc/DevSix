@@ -104,7 +104,7 @@ def processar_acoes():
             data_reserva = date.fromisoformat(data_txt)
         except ValueError:
             _flash("error", MSG_RESERVA_DATA_INVALIDA)
-            _limpar_acao("predio", predio=predio)
+            navigate("predio", predio=predio)
             st.rerun()
             return
         if data_reserva < date.today():
@@ -120,7 +120,7 @@ def processar_acoes():
             _flash("success", MSG_RESERVA_SUCESSO)
         else:
             _flash("error", MSG_RESERVA_CONFLITO)
-        _limpar_acao("predio", predio=predio)
+        navigate("predio", predio=predio)
         st.rerun()
 
     if acao == "troca" and st.session_state["tipo"] == "Professor":
@@ -139,7 +139,7 @@ def processar_acoes():
                 _flash("warning", MSG_TROCA_DUPLICADA)
             else:
                 _flash("success", MSG_TROCA_SUCESSO)
-        _limpar_acao("inicio")
+        navigate("inicio")
         st.rerun()
 
     if acao == "responder_troca" and st.session_state["tipo"] == "Professor":
@@ -152,7 +152,7 @@ def processar_acoes():
             _flash("error", "Somente o destinatário da proposta pode responder.")
         else:
             _flash("warning", "Essa proposta não está mais disponível.")
-        _limpar_acao("notificacoes")
+        navigate("notificacoes")
         st.rerun()
 
     if acao in ("aprovar", "rejeitar") and st.session_state["tipo"] in ("Administrador", "Coordenador", "Secretário"):
@@ -164,7 +164,7 @@ def processar_acoes():
             st.session_state["tipo"],
         )
         _flash("success", "Status da reserva atualizado.")
-        _limpar_acao("admin")
+        navigate("admin")
         st.rerun()
 
 

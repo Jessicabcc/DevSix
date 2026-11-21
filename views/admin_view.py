@@ -63,7 +63,7 @@ def render(pagina="admin"):
 
     if pagina == "predio":
         from controllers.campus_controller import salas_do_predio
-        nome = get_params("predio", next(iter(predios), "Campus"))
+        nome = get_param("predio", next(iter(predios), "Campus"))
         streamlit_pages.pagina_predio(usuario, tipo, nome, salas_do_predio(nome), pode_agendar=False)
         return
 
