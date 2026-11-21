@@ -10,6 +10,7 @@ from controllers.qr_auth_controller import create_login_token, gerar_qr_png, url
 from controllers.user_controller import update_profile
 from models.db_manager import PROJECT_DIR, get_data
 from config import APP_VERSION
+from utils.query_params import set_query_params, get_param
 
 from views.ui_text import (
     MSG_NENHUMA_AREA,
@@ -35,18 +36,10 @@ CATEGORIAS_SALA = {
     "Quadra": "Atividade física",
 }
 
-
-def _set_query_params(params):
-    st.query_params.clear()
-    for key, value in params.items():
-        if value not in (None, ""):
-            st.query_params[key] = str(value)
-
-
 def _navegacao(usuario, tipo):
     foto = str(st.session_state.get("foto", ""))
     caminho_foto = PROJECT_DIR / "assets" / "uploads" / foto if foto else None
-    pagina_atual = str(st.query_params.get("page", "inicio"))
+    pagina_atual = str(get_param("page", "inicio"))
     if pagina_atual == "dashboard":
         marca = "DASHBOARD INSTITUCIONAL TESTE PARA TEXTOS"
     elif pagina_atual == "perfil":
@@ -84,7 +77,7 @@ def _navegacao(usuario, tipo):
                     key=f"nav_{pagina}",
                     type="primary" if pagina_atual == pagina else "secondary",
                     width="content",
-                    on_click=_set_query_params,
+                    on_click=set_query_params,
                     args=({"page": pagina},),
                 )
             with st.container(horizontal=True, vertical_alignment="center", key="nav-user"):
@@ -97,7 +90,7 @@ def _navegacao(usuario, tipo):
                 icon=":material/logout:",
                 type="secondary",
                 width="content",
-                on_click=_set_query_params,
+                on_click=set_query_params,
                 args=({"acao": "logout"},),
             )
     st.space(90)
@@ -133,7 +126,7 @@ def pagina_inicio(usuario, tipo, predios, reservas, minhas_aprovadas):
                         key=f"abrir_predio_{indice}",
                         icon=":material/meeting_room:",
                         width="stretch",
-                        on_click=_set_query_params,
+                        on_click=set_query_params,
                         args=({"page": "predio", "predio": nome},),
                     )
     else:
@@ -177,7 +170,7 @@ def pagina_inicio(usuario, tipo, predios, reservas, minhas_aprovadas):
                             )
                             enviar = st.form_submit_button("Enviar proposta", type="primary")
                         if enviar:
-                            _set_query_params({
+                            set_query_params({
                                 "page": "inicio",
                                 "acao": "troca",
                                 "id_alvo": reserva.get("id_reserva"),
@@ -262,7 +255,7 @@ def pagina_predio(usuario, tipo, predio_nome, salas, pode_agendar):
                     )
                     enviar = st.form_submit_button("Solicitar reserva", type="primary")
                 if enviar:
-                    _set_query_params({
+                    set_query_params({
                         "page": "predio",
                         "predio": predio_nome,
                         "acao": "reservar",
@@ -282,7 +275,7 @@ def pagina_reservas(usuario, tipo, reservas):
         st.info(MSG_NENHUMA_SOLICITACAO_RESERVA)
         st.button(
             "Ir para o início",
-            on_click=_set_query_params,
+            on_click=set_query_params,
             args=({"page": "inicio"},),
         )
         return
@@ -330,7 +323,7 @@ def pagina_notificacoes(usuario, tipo, notificacoes):
                     (rejeitar, "rejeitar", "Rejeitar troca"),
                 ):
                     if coluna.button(rotulo, key=f"responder_{resposta}_{notificacao['id_troca']}"):
-                        _set_query_params({
+                        set_query_params({
                             "page": "notificacoes",
                             "acao": "responder_troca",
                             "id": notificacao["id_troca"],
@@ -425,7 +418,7 @@ def pagina_perfil(usuario, tipo):
                             )
                             enviar_reserva = st.form_submit_button("Solicitar reserva", type="primary")
                         if enviar_reserva:
-                            _set_query_params({
+                            set_query_params({
                                 "page": "perfil",
                                 "acao": "reservar",
                                 "predio": sala["predio"],
@@ -454,14 +447,14 @@ def pagina_admin(usuario, tipo, pendentes, salas, predios):
                     "Aprovar",
                     key=f"aprovar_{reserva.get('id_reserva', indice)}",
                     icon=":material/check:",
-                    on_click=_set_query_params,
+                    on_click=set_query_params,
                     args=({"page": "admin", "acao": "aprovar", "id": reserva.get("id_reserva")},),
                 )
                 rejeitar.button(
                     "Rejeitar",
                     key=f"rejeitar_{reserva.get('id_reserva', indice)}",
                     icon=":material/close:",
-                    on_click=_set_query_params,
+                    on_click=set_query_params,
                     args=({"page": "admin", "acao": "rejeitar", "id": reserva.get("id_reserva")},),
                 )
                 st.caption(f"Solicitado em: {reserva.get('solicitado_em') or 'Não informado'}")

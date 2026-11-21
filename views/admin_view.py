@@ -25,6 +25,7 @@ from controllers.user_controller import remove_user
 from models.db_manager import get_data, registrar_historico
 from views.campus_metadata import CATEGORIAS_SALA
 from views import streamlit_pages
+from utils.query_params import get_param
 
 
 def render(pagina="admin"):
@@ -62,7 +63,7 @@ def render(pagina="admin"):
 
     if pagina == "predio":
         from controllers.campus_controller import salas_do_predio
-        nome = st.query_params.get("predio", next(iter(predios), "Campus"))
+        nome = get_params("predio", next(iter(predios), "Campus"))
         streamlit_pages.pagina_predio(usuario, tipo, nome, salas_do_predio(nome), pode_agendar=False)
         return
 

@@ -11,6 +11,13 @@ from models.db_manager import get_data, init_db
 from views import admin_view, registro_view, secretario_view, teacher_view
 from config import APP_VERSION
 
+from utils.query_params import (
+    get_param,
+    set_query_params,
+    clear_query_params,
+    navigate,
+)
+
 from views.ui_text import (
     MSG_RESERVA_DATA_INVALIDA,
     MSG_RESERVA_DATA_PASSADA,
@@ -59,22 +66,6 @@ if "tipo" not in st.session_state:
 if "flash" not in st.session_state:
     st.session_state["flash"] = None
 
-
-def _param(nome, padrao=""):
-    valor = st.query_params.get(nome, padrao)
-    if isinstance(valor, list):
-        return valor[0] if valor else padrao
-    return valor or padrao
-
-
-def _limpar_acao(page, **extras):
-    st.query_params.clear()
-    st.query_params["page"] = page
-    for chave, valor in extras.items():
-        if valor:
-            st.query_params[chave] = valor
-
-
 def _flash(tipo, mensagem):
     st.session_state["flash"] = (tipo, mensagem)
 
@@ -86,30 +77,29 @@ def _finalizar_login(credencial):
         credencial["email"],
         credencial["foto"],
     ))
-    st.query_params.clear()
-    st.query_params["page"] = "inicio"
+    navigate("inicio")
     st.rerun()
 
 
 def processar_acoes():
-    acao = _param("acao")
+    acao = get_param("acao")
     if not acao:
         return
 
-    predio = _param("predio")
+    predio = get_param("predio")
 
     if acao == "logout":
         st.session_state.update(controller_logout(st.session_state["usuario"]))
-        st.query_params.clear()
+        clear_query_params()
         st.rerun()
 
     if not st.session_state["logged_in"]:
         return
 
     if acao == "reservar" and st.session_state["tipo"] == "Professor":
-        sala = _param("sala")
-        data_txt = _param("data")
-        turno = _param("turno")
+        sala = get_param("sala")
+        data_txt = get_param("data")
+        turno = get_param("turno")
         try:
             data_reserva = date.fromisoformat(data_txt)
         except ValueError:
@@ -134,8 +124,8 @@ def processar_acoes():
         st.rerun()
 
     if acao == "troca" and st.session_state["tipo"] == "Professor":
-        id_alvo = _param("id_alvo")
-        id_origem = _param("id_origem")
+        id_alvo = get_param("id_alvo")
+        id_origem = get_param("id_origem")
         agendamentos = get_data("agendamentos")
         origem = agendamentos[agendamentos["id_reserva"] == id_origem]
         alvo = agendamentos[agendamentos["id_reserva"] == id_alvo]
@@ -154,7 +144,7 @@ def processar_acoes():
 
     if acao == "responder_troca" and st.session_state["tipo"] == "Professor":
         resultado = respond_to_exchange(
-            _param("id"), _param("resposta"), st.session_state["usuario"]
+            get_param("id"), get_param("resposta"), st.session_state["usuario"]
         )
         if resultado in ("aceita", "rejeitada"):
             _flash("success", "Troca atualizada com sucesso.")
@@ -168,7 +158,7 @@ def processar_acoes():
     if acao in ("aprovar", "rejeitar") and st.session_state["tipo"] in ("Administrador", "Coordenador", "Secretário"):
         novo_status = "Aprovado" if acao == "aprovar" else "Rejeitado"
         update_reservation_status(
-            _param("id"),
+            get_param("id"),
             novo_status,
             st.session_state["usuario"],
             st.session_state["tipo"],
@@ -185,16 +175,16 @@ if st.session_state.get("flash"):
     st.session_state["flash"] = None
 
 if not st.session_state["logged_in"]:
-    if _param("page") == "qr_login":
-        credencial = consume_login_token(_param("token"))
+    if get_param("page") == "qr_login":
+        credencial = consume_login_token(get_param("token"))
         if credencial:
             _finalizar_login(credencial)
         st.title("Acesso pelo QR Code")
         st.error("Este QR Code expirou ou já foi utilizado. Gere outro no perfil do dispositivo conectado.")
         if st.button("Voltar para o login", icon=":material/login:"):
-            st.query_params.clear()
+            clear_query_params()
             st.rerun()
-    elif _param("page") == "registro":
+    elif get_param("page") == "registro":
         registro_view.render()
     else:
         col1, col2, col3 = st.columns([1, 2, 1])
@@ -226,8 +216,8 @@ if not st.session_state["logged_in"]:
                 st.session_state.pop("login_pendente", None)
                 st.rerun()
 else:
-    pagina = _param("page", "inicio")
-    predio = _param("predio")
+    pagina = get_param("page", "inicio")
+    predio = get_param("predio")
     tipo = st.session_state["tipo"]
 
     if tipo in ("Administrador", "Coordenador"):
