@@ -41,29 +41,17 @@ def salas_do_predio(predio):
     if salas.empty:
         return []
 
-    salas_filtradas = salas[salas["predio"] == predio].copy()
-
-    # Garante que uma sala seja exibida apenas uma vez.
-    salas_filtradas = salas_filtradas.drop_duplicates(
-        subset=["id_sala"],
-        keep="first",
-    )
-
     registros = []
-    for _, sala in salas_filtradas.iterrows():
+    for _, sala in salas[salas["predio"] == predio].iterrows():
         status = str(sala.get("status") or "Ativa")
         registros.append({
             "id_sala": sala["id_sala"],
             "predio": sala["predio"],
             "nome_sala": sala["nome_sala"],
             "observacoes": sala.get("observacoes", ""),
-            "categoria": categoria_da_sala(
-                sala["predio"],
-                sala.get("categoria"),
-            ),
+            "categoria": categoria_da_sala(sala["predio"], sala.get("categoria")),
             "status": status,
         })
-
     return registros
 
 

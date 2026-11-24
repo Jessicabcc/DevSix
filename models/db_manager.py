@@ -60,32 +60,6 @@ DEFAULTS = {
     "criado_por": "",
 }
 
-STATUS_CANONICOS = {
-    "aprovado": "Aprovado",
-    "pendente": "Pendente",
-    "rejeitado": "Rejeitado",
-    "bloqueada": "Bloqueada",
-    "ativa": "Ativa",
-    "online": "Online",
-    "offline": "Offline",
-}
-
-
-def normalizar_texto(valor):
-    return str(valor if valor is not None else "").strip()
-
-
-def normalizar_chave(valor):
-    return normalizar_texto(valor).casefold()
-
-
-def normalizar_status(valor, padrao=""):
-    chave = normalizar_chave(valor)
-    return STATUS_CANONICOS.get(
-        chave,
-        normalizar_texto(valor) or padrao,
-    )
-
 LEGACY_FILES = {
     "usuarios": "usuarios.csv",
     "salas": "salas.csv",
@@ -123,18 +97,7 @@ def normalize_table(table, df):
             if column == "status":
                 default = DEFAULTS["status"].get(table, "")
             df[column] = default
-        df = df[REQUIRED_COLUMNS[table]].fillna("")
-
-    for column in df.columns:
-        df[column] = df[column].map(normalizar_texto)
-
-    if "status" in df.columns:
-        padrao_status = DEFAULTS["status"].get(table, "")
-        df["status"] = df["status"].map(
-            lambda valor: normalizar_status(valor, padrao_status)
-        )
-
-    return df
+    return df[REQUIRED_COLUMNS[table]].fillna("")
 
 
 def _read_csv(path, table):

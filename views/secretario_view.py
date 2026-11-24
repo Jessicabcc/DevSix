@@ -7,8 +7,7 @@ from controllers.exchange_controller import approve_exchange, update_exchange_st
 from controllers.user_controller import create_user, remove_user
 from models.db_manager import get_data
 from views import streamlit_pages
-from utils.query_params import get_param
-
+from utils import mensagens as txt
 
 def render(pagina="admin"):
     usuario = st.session_state.get("usuario", "")
@@ -28,7 +27,8 @@ def render(pagina="admin"):
         streamlit_pages.pagina_inicio(usuario, tipo, predios, reservas, [])
         return
     if pagina == "predio":
-        nome = get_param("predio", next(iter(predios), "Campus"))
+        predios = listar_predios()
+        nome = st.query_params.get("predio", next(iter(predios), "Campus"))
         streamlit_pages.pagina_predio(usuario, tipo, nome, salas_do_predio(nome), pode_agendar=False)
         return
     if pagina == "perfil":
