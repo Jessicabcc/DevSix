@@ -115,15 +115,111 @@ O importador lê os CSVs atuais e os arquivos compatíveis em `assets/data/legac
 
 Se estiver usando o Firestore deste projeto já configurado e migrado, **não execute a migração novamente**; siga para a execução do app.
 
-## Usuário inicial
+## 5. Executar o Streamlit
 
-Na primeira execução, caso não exista nenhum usuário cadastrado, o sistema cria automaticamente uma conta de administrador padrão:
+No mesmo PowerShell em que o ambiente virtual está ativo, as credenciais ADC estão configuradas e `GOOGLE_CLOUD_PROJECT` está definido, execute:
+
+```powershell
+python -m streamlit run app.py
+```
+
+O Streamlit abrirá o endereço local no navegador (normalmente `http://localhost:8501`). Para encerrar, volte ao terminal e pressione `Ctrl+C`.
+
+## 6. Publicar no Streamlit Community Cloud
+
+1. Envie o projeto ao GitHub sem incluir arquivos de chave, `.env` ou `.streamlit/secrets.toml`.
+2. No Streamlit Community Cloud, crie um app apontando para o repositório, a branch desejada e `app.py`.
+3. Crie no Supabase Storage um bucket privado chamado `profile-photos`. Não habilite acesso público: o app faz upload e download no servidor.
+4. Em **App settings → Secrets**, configure a conta de serviço Firebase para o Firestore e o URL/chave secreta do Supabase para as fotos:
+
+```toml
+[firebase]
+project_id = "ID_DO_PROJETO_FIREBASE"
+client_email = "EMAIL_DA_CONTA_DE_SERVICO"
+private_key = """-----BEGIN PRIVATE KEY-----
+COLE AQUI O CONTEUDO DA CHAVE PRIVADA
+-----END PRIVATE KEY-----
+"""
+
+[supabase]
+url = "https://ID_DO_PROJETO.supabase.co"
+secret_key = "sb_secret_..."
+bucket = "profile-photos"
+```
+
+Obtenha `client_email` e `private_key` do JSON da conta de serviço Firebase, e `url` e `secret_key` na área de API Keys do projeto Supabase. A chave `sb_secret_...` tem privilégios elevados: mantenha-a apenas nos Secrets do Streamlit, nunca no navegador, GitHub, `.env` versionado ou nesta conversa. O app usa essa chave somente no servidor para acessar o bucket privado.
+
+No Firebase, conceda à conta de serviço acesso ao Firestore, por exemplo, a função IAM **Cloud Datastore User**. O Firebase continua sendo usado para o Firestore; as fotos novas ficam no Supabase Storage.
+
+Antes de publicar, confirme que o Firestore configurado em `project_id` já contém os dados e o documento de conclusão da migração CSV. Se ainda não migrou, faça isso uma única vez em um ambiente local autenticado com acesso ao mesmo projeto, seguindo o passo 4. Não rode a migração de um banco já utilizado.
+
+O `requirements.txt` do repositório deve estar em UTF-8 para que o Cloud instale as dependências corretamente. Depois do deploy, confira os logs do app se a inicialização indicar credenciais, bucket ou migração ausentes.
+
+Uploads de fotos feitos no Streamlit Cloud são armazenados no bucket privado do Supabase. Fotos locais antigas em `assets/uploads/` continuam sendo lidas enquanto estiverem incluídas no repositório. Em execução local sem Secrets do Firebase e do Supabase, uploads continuam usando a pasta local. Se os Secrets do Firebase estiverem configurados sem os do Supabase, novos uploads são recusados para evitar gravações no Firebase Storage.
+
+## 7. Primeiro acesso
+
+Use uma conta já existente nos dados importados. O app só cria o usuário inicial abaixo se a coleção `usuarios` estiver vazia:
 
 - Usuário: `Suporte.ti`
 - Senha inicial: `admin123`
-- Tipo: `Administrador`
 
-A conta inicial só é criada quando o arquivo de usuários está vazio. Após o primeiro acesso, recomenda-se alterar a senha padrão.
+Se essa conta for criada, troque a senha inicial antes de usar o sistema com dados reais.
+
+## Segurança e operação
+
+- Não compartilhe nem versione arquivos de credenciais, tokens ou o arquivo ADC do Google Cloud.
+- Este app usa o Firebase Admin SDK no servidor. As operações são autorizadas pela identidade Google/ADC e pelas permissões IAM da conta; as regras de acesso do SDK cliente Firebase não substituem o controle de acesso IAM para essa conexão.
+- A chave secreta do Supabase também é usada somente no servidor e pode ignorar as políticas RLS; nunca a exponha no cliente. Mantenha o bucket privado e conceda somente os acessos necessários.
+- Dê à conta somente as permissões necessárias no projeto. Para acesso ao Firestore, peça ao administrador do projeto uma função IAM apropriada e, se necessário, permissão para usar o projeto como quota project.
+- Mantenha uma cópia de segurança dos CSVs. Depois que os dados estiverem no Firestore, o app lê e grava no Firestore; os CSVs servem apenas como origem da migração.
+- As leituras são armazenadas em cache por até 5 segundos. Gravações realizadas pelo app invalidam o cache imediatamente.
+
+## Solução de problemas
+
+### `ValueError: Project ID is required to access Firestore`
+
+Defina o ID no terminal antes de iniciar o app e reinicie o Streamlit:
+
+```powershell
+$env:GOOGLE_CLOUD_PROJECT = "SEU_ID_DO_PROJETO"
+python -m streamlit run app.py
+```
+
+### Credenciais ADC não encontradas
+
+Execute o login ADC e conclua a autorização no navegador:
+
+```powershell
+gcloud auth application-default login
+```
+
+### Aviso sobre quota project ou erro de quota
+
+Defina o projeto padrão e o quota project:
+
+```powershell
+gcloud config set project SEU_ID_DO_PROJETO
+gcloud auth application-default set-quota-project SEU_ID_DO_PROJETO
+```
+
+Se o comando negar permissão, solicite ao administrador do Google Cloud acesso ao projeto e permissão para usá-lo como quota project.
+
+### O app informa que a migração não foi concluída
+
+Confirme se está apontando para o projeto Firestore correto. Para um banco novo e vazio com os CSVs disponíveis, siga o passo 4. Não rode o importador em um banco que já contém dados de produção.
+
+### `pip` ou `streamlit` não é reconhecido
+
+Ative o ambiente virtual e use os comandos pelo módulo Python:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
+```
+
+## Estrutura principal
 
 - `app.py` — entrada do aplicativo.
 - `models/` — persistência e migração de dados.
@@ -139,12 +235,3 @@ A versão da aplicação fica em `utils/versao.py` (`APP_VERSAO`) e aparece no r
 O ambiente é definido pela variável `APP_ENV` (padrão: `desenvolvimento`).
 Ao lançar uma nova versão, altere apenas `APP_VERSAO`.
 
-Os arquivos CSV utilizados pelo sistema são lidos e gravados em UTF-8. Na leitura, o sistema aceita UTF-8 com BOM (`utf-8-sig`) para compatibilidade com arquivos existentes. Os dados CSV são armazenados na pasta `assets/data/`, então o sistema é simples e estático, ideal para fins acadêmicos e de demonstração.
-
-### Status Online/Offline
-
-Ao realizar o login, o sistema registra o usuário como `Online`. Ao utilizar o botão **Sair**, o sistema registra o usuário como `Offline`.
-
-O encerramento inesperado da aplicação, como fechar o navegador diretamente, perder a conexão ou ocorrer uma falha durante a sessão, pode impedir que o logout seja registrado. Nesses casos, a conta pode permanecer temporariamente marcada como `Online`.
-
-Por isso, o status representa o estado conhecido pelo sistema e não uma indicação de conexão em tempo real.
