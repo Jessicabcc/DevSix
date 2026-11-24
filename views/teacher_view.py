@@ -40,28 +40,33 @@ def _notificacoes(usuario):
 def render(pagina="inicio", predio=""):
     usuario = st_usuario()
     tipo = st_tipo()
-    predios = listar_predios()
-    reservas = reservas_enriquecidas()
-    minhas = [r for r in reservas if r["professor"] == usuario]
-    minhas_aprovadas = [r for r in minhas if r["status"] == "Aprovado"]
 
     if pagina == "predio":
+        predios = listar_predios()
         nome = predio if predio in predios else (next(iter(predios), "Campus"))
         streamlit_pages.pagina_predio(usuario, tipo, nome, salas_do_predio(nome), pode_agendar=(tipo == "Professor"))
         return
     if pagina == "reservas":
+        reservas = reservas_enriquecidas()
+        minhas = [r for r in reservas if r["professor"] == usuario]
         streamlit_pages.pagina_reservas(usuario, tipo, minhas)
         return
     if pagina == "notificacoes":
         streamlit_pages.pagina_notificacoes(usuario, tipo, _notificacoes(usuario))
         return
     if pagina == "dashboard":
+        reservas = reservas_enriquecidas()
+        minhas = [r for r in reservas if r["professor"] == usuario]
         streamlit_pages.pagina_dashboard_professor(usuario, reservas=minhas)
         return
     if pagina == "perfil":
         streamlit_pages.pagina_perfil(usuario, tipo)
         return
 
+    predios = listar_predios()
+    reservas = reservas_enriquecidas()
+    minhas = [r for r in reservas if r["professor"] == usuario]
+    minhas_aprovadas = [r for r in minhas if r["status"] == "Aprovado"]
     streamlit_pages.pagina_inicio(usuario, tipo, predios, reservas, minhas_aprovadas)
 
 

@@ -1,3 +1,4 @@
+from utils import mensagens as txt
 from datetime import date
 from html import escape
 from pathlib import Path
@@ -81,8 +82,8 @@ def _navegacao(usuario, tipo):
                     args=({"page": pagina},),
                 )
             with st.container(horizontal=True, vertical_alignment="center", key="nav-user"):
-                if caminho_foto and caminho_foto.exists():
-                    st.image(str(caminho_foto), width=32)
+                if imagem_perfil:
+                    st.image(imagem_perfil, width=32)
                 st.markdown(f"**{escape(usuario)}**  \n{escape(tipo)}")
             st.button(
                 "Sair",
@@ -104,7 +105,7 @@ def _normalizar(texto):
 def pagina_inicio(usuario, tipo, predios, reservas, minhas_aprovadas):
     _navegacao(usuario, tipo)
     st.title("Reserve seu espaço acadêmico")
-    st.write("Selecione um prédio para consultar as salas e solicitar um agendamento.")
+    st.write("Selecione uma categoria para consultar as salas e solicitar um agendamento!")
 
     predios_ocultos = {"prediocentral", "anexo1", "anexo2anfiteatro", "anexo2antefiatro"}
     predios_visiveis = {
@@ -119,7 +120,9 @@ def pagina_inicio(usuario, tipo, predios, reservas, minhas_aprovadas):
         for indice, (nome, predio) in enumerate(predios_visiveis.items()):
             with colunas[indice % len(colunas)]:
                 with st.container(border=True, height=220, key=f"campus-card-{indice}"):
-                    st.subheader(f"{predio.get('emoji', '')} {predio.get('nome', nome)}")
+                    nome_predio = predio.get("nome", nome)
+                    emoji_predio = EMOJIS_PREDIO_INICIO.get(nome_predio, predio.get("emoji", ""))
+                    st.subheader(f"{emoji_predio} {nome_predio}")
                     st.badge(f"{predio.get('total_salas', 0)} salas", color="blue")
                     st.button(
                         "Ver salas",
@@ -239,7 +242,7 @@ def pagina_predio(usuario, tipo, predio_nome, salas, pode_agendar):
                     st.rerun()
 
             if str(sala.get("status")) == "Bloqueada":
-                st.warning("Esta sala está bloqueada para agendamentos.")
+                st.warning(txt.MSG_SALA_BLOQUEADA)
             elif pode_agendar:
                 with st.form(f"form_reserva_{sala.get('id_sala', indice)}"):
                     data_reserva = st.date_input(
@@ -265,7 +268,7 @@ def pagina_predio(usuario, tipo, predio_nome, salas, pode_agendar):
                     })
                     st.rerun()
             else:
-                st.caption("Somente professores podem agendar salas.")
+                st.caption("Somente contas de professores podem agendar salas.")
 
 
 def pagina_reservas(usuario, tipo, reservas):
@@ -339,9 +342,9 @@ def pagina_perfil(usuario, tipo):
     atual = usuarios[usuarios["nome"] == usuario]
     registro = atual.iloc[0] if not atual.empty else {}
     foto = str(registro.get("foto", "")) if hasattr(registro, "get") else ""
-    caminho_foto = PROJECT_DIR / "assets" / "uploads" / foto if foto else None
-    if caminho_foto and caminho_foto.exists():
-        st.image(str(caminho_foto), width=112)
+    imagem_perfil = load_profile_photo(foto) if foto else None
+    if imagem_perfil:
+        st.image(imagem_perfil, width=112)
     st.write(f"Tipo de conta: {tipo or 'Não informado'}")
     st.write(f"E-mail: {registro.get('email', '') if hasattr(registro, 'get') else ''}")
 
@@ -376,7 +379,7 @@ def pagina_perfil(usuario, tipo):
             coluna_qr.image(gerar_qr_png(link_qr), width=168)
             coluna_link.caption("Escaneie com a câmera do celular. O código expira em 2 minutos e só pode ser usado uma vez.")
         else:
-            st.warning("Defina STREAMLIT_PUBLIC_URL para gerar um QR acessível por outros dispositivos.")
+            st.warning(txt.MSG_DEFINIR_URL_PUBLICA)
 
     if tipo == "Professor":
         aba_reservas, aba_favoritas = st.tabs(["Reservas aprovadas", "Salas favoritas"])
@@ -427,12 +430,15 @@ def pagina_perfil(usuario, tipo):
                                 "turno": turno,
                             })
                             st.rerun()
-
-
 def pagina_admin(usuario, tipo, pendentes, salas, predios):
     _navegacao(usuario, tipo)
     st.title("Painel administrativo" if tipo == "Administrador" else "Painel da secretaria")
-    aprovacoes, cadastro_salas = st.tabs(["Aprovações pendentes", "Salas cadastradas"])
+    aprovacoes, cadastro_salas = st.tabs(
+        ["Aprovações pendentes", "Salas cadastradas"],
+        on_change="rerun",
+        key="admin_aprovacoes_tabs",
+    )
+
 
     with aprovacoes:
         if not pendentes:

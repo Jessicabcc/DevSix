@@ -2,7 +2,7 @@ from datetime import date
 from pathlib import Path
 
 import streamlit as st
-
+from utils import mensagens as txt
 from controllers.auth_controller import authenticate, login, logout as controller_logout
 from controllers.exchange_controller import create_exchange, respond_to_exchange
 from controllers.qr_auth_controller import consume_login_token
@@ -28,12 +28,17 @@ from views.ui_text import (
     MSG_TROCA_SUCESSO,
 )
 
-st.set_page_config(page_title="Agendamentos UniSapiens", page_icon="🏫", layout="wide")
+from views import admin_view, registro_view, secretario_view, streamlit_pages, teacher_view
+from utils.versao import texto_rodape
+
+st.set_page_config(page_title="Agendamentos Unisapiens", page_icon="🏢", layout="wide")
+
 init_db()
 
 css_path = Path(__file__).resolve().parent / "style" / "style.css"
 eng_style_path = Path(__file__).resolve().parent / "style" / "eng_software_streamlit.css"
 identity_style_path = Path(__file__).resolve().parent / "style" / "identity_streamlit.css"
+# Se o CSS falhar, o app segue sem estilo.
 try:
     css = "\n".join(
         path.read_text(encoding="utf-8")
@@ -57,17 +62,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-if "usuario" not in st.session_state:
-    st.session_state["usuario"] = ""
-if "tipo" not in st.session_state:
-    st.session_state["tipo"] = ""
-if "flash" not in st.session_state:
-    st.session_state["flash"] = None
+# Teste de commit.
 
 def _flash(tipo, mensagem):
     st.session_state["flash"] = (tipo, mensagem)
+
+if ("login_pendente" in st.session_state) and st.session_state["login_pendente"]:()
 
 def _finalizar_login(credencial):
     st.session_state.pop("login_pendente", None)
@@ -85,6 +85,7 @@ def processar_acoes():
     acao = get_param("acao")
     if not acao:
         return
+    # Lê a URL e executa a ação pedida.
 
     predio = get_param("predio")
 
@@ -107,6 +108,7 @@ def processar_acoes():
             navigate("predio", predio=predio)
             st.rerun()
             return
+        # Impede reservas em datas passadas.
         if data_reserva < date.today():
             _flash("error", MSG_RESERVA_DATA_PASSADA)
         elif create_reservation(
@@ -180,7 +182,7 @@ if not st.session_state["logged_in"]:
         if credencial:
             _finalizar_login(credencial)
         st.title("Acesso pelo QR Code")
-        st.error("Este QR Code expirou ou já foi utilizado. Gere outro no perfil do dispositivo conectado.")
+        st.error(txt.MSG_QR_EXPIRADO)
         if st.button("Voltar para o login", icon=":material/login:"):
             clear_query_params()
             st.rerun()
@@ -206,9 +208,7 @@ if not st.session_state["logged_in"]:
             st.caption(f"Cadastros disponíveis por convite | UniSapiens v{APP_VERSION}")
         credencial_pendente = st.session_state.get("login_pendente")
         if credencial_pendente:
-            st.warning(
-                "Esta conta já aparece Online em outro acesso. Confirme sua identidade para continuar."
-            )
+            st.warning(txt.MSG_CONTA_JA_ONLINE)
             confirmar, cancelar = st.columns(2)
             if confirmar.button("Confirmar identidade e entrar", type="primary"):
                 _finalizar_login(credencial_pendente)
@@ -220,9 +220,13 @@ else:
     predio = get_param("predio")
     tipo = st.session_state["tipo"]
 
+    # Cada tipo de usuário vê uma tela diferente.
     if tipo in ("Administrador", "Coordenador"):
         admin_view.render(pagina)
     elif tipo == "Secretário":
         secretario_view.render(pagina)
     else:
         teacher_view.render(pagina, predio)
+
+st.divider()
+st.caption(texto_rodape())
