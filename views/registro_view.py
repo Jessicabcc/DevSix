@@ -1,11 +1,11 @@
 import streamlit as st
 
 from controllers.invitation_controller import get_invitation, register_with_invitation
-from utils import mensagens as txt
+from utils.query_params import get_param, clear_query_params
 
 def render():
     st.title("Criar conta")
-    token = st.query_params.get("token", "")
+    token = get_param("token", "")
     estado, convite = get_invitation(token)
     if estado != "valido":
         avisos = {
@@ -17,7 +17,7 @@ def render():
         st.warning(avisos[estado])
 
         if st.button("Voltar para o login", icon=":material/login:"):
-            st.query_params.clear()
+            clear_query_params()
             st.rerun()
         return
 
@@ -36,7 +36,7 @@ def render():
                 "success",
                 f"Conta de {resultado} criada. Faça login para continuar.",
             )
-            st.query_params.clear()
+            clear_query_params()
             st.rerun()
         elif resultado == "campos":
             st.error(txt.MSG_REGISTRO_DADOS_INVALIDOS)

@@ -8,6 +8,25 @@ from controllers.exchange_controller import create_exchange, respond_to_exchange
 from controllers.qr_auth_controller import consume_login_token
 from controllers.reservation_controller import create_reservation, update_reservation_status
 from models.db_manager import get_data, init_db
+from views import admin_view, registro_view, secretario_view, teacher_view
+from config import APP_VERSION
+
+from utils.query_params import (
+    get_param,
+    set_query_params,
+    clear_query_params,
+    navigate,
+)
+
+from views.ui_text import (
+    MSG_RESERVA_DATA_INVALIDA,
+    MSG_RESERVA_DATA_PASSADA,
+    MSG_RESERVA_SUCESSO,
+    MSG_RESERVA_CONFLITO,
+    MSG_TROCA_INVALIDA,
+    MSG_TROCA_DUPLICADA,
+    MSG_TROCA_SUCESSO,
+)
 
 from views import admin_view, registro_view, secretario_view, streamlit_pages, teacher_view
 from utils.versao import texto_rodape
@@ -45,27 +64,6 @@ st.markdown(
 
 # Teste de commit.
 
-valores_padrao = {"logged_in": False, "usuario": "", "tipo": "", "flash": None}
-for chave, valor in valores_padrao.items():
-    if chave not in st.session_state:
-        st.session_state[chave] = valor
-
-# Lê um parâmetro da URL. Se vier como lista, usa o primeiro valor.
-def _param(nome, padrao=""):
-    valor = st.query_params.get(nome, padrao)
-    if isinstance(valor, list):
-        return valor[0] if valor else padrao
-    return valor or padrao
-
-# Limpa a URL e define a página de destino.
-def _limpar_acao(page, **extras):
-    st.query_params.clear()
-    st.query_params["page"] = page
-    for chave, valor in extras.items():
-        if valor:
-            st.query_params[chave] = valor
-
-# Guarda uma mensagem para mostrar na próxima tela.
 def _flash(tipo, mensagem):
     st.session_state["flash"] = (tipo, mensagem)
 
@@ -79,41 +77,40 @@ def _finalizar_login(credencial):
         credencial["email"],
         credencial["foto"],
     ))
-    st.query_params.clear()
-    st.query_params["page"] = "inicio"
+    navigate("inicio")
     st.rerun()
 
 
 def processar_acoes():
-    acao = _param("acao")
+    acao = get_param("acao")
     if not acao:
         return
     # Lê a URL e executa a ação pedida.
 
-    predio = _param("predio")
+    predio = get_param("predio")
 
     if acao == "logout":
         st.session_state.update(controller_logout(st.session_state["usuario"]))
-        st.query_params.clear()
+        clear_query_params()
         st.rerun()
 
     if not st.session_state["logged_in"]:
         return
 
     if acao == "reservar" and st.session_state["tipo"] == "Professor":
-        sala = _param("sala")
-        data_txt = _param("data")
-        turno = _param("turno")
+        sala = get_param("sala")
+        data_txt = get_param("data")
+        turno = get_param("turno")
         try:
             data_reserva = date.fromisoformat(data_txt)
         except ValueError:
-            _flash("error", "Data inválida para a reserva.")
-            _limpar_acao("predio", predio=predio)
+            _flash("error", MSG_RESERVA_DATA_INVALIDA)
+            navigate("predio", predio=predio)
             st.rerun()
             return
         # Impede reservas em datas passadas.
         if data_reserva < date.today():
-            _flash("error", "Não é permitido agendar salas em datas passadas.")
+            _flash("error", MSG_RESERVA_DATA_PASSADA)
         elif create_reservation(
             sala,
             data_reserva,
@@ -122,15 +119,15 @@ def processar_acoes():
             email=st.session_state.get("email", ""),
             predio=predio,
         ):
-            _flash("success", "Sua reserva foi enviada para aprovação.")
+            _flash("success", MSG_RESERVA_SUCESSO)
         else:
-            _flash("error", "Esta sala já está reservada ou pendente para este dia e turno.")
-        _limpar_acao("predio", predio=predio)
+            _flash("error", MSG_RESERVA_CONFLITO)
+        navigate("predio", predio=predio)
         st.rerun()
 
     if acao == "troca" and st.session_state["tipo"] == "Professor":
-        id_alvo = _param("id_alvo")
-        id_origem = _param("id_origem")
+        id_alvo = get_param("id_alvo")
+        id_origem = get_param("id_origem")
         agendamentos = get_data("agendamentos")
         origem = agendamentos[agendamentos["id_reserva"] == id_origem]
         alvo = agendamentos[agendamentos["id_reserva"] == id_alvo]
@@ -139,17 +136,17 @@ def processar_acoes():
         else:
             resultado = create_exchange(id_alvo, id_origem, alvo.iloc[0].to_dict(), origem.iloc[0].to_dict())
             if resultado == "invalida":
-                _flash("warning", "Troca inválida: mesma sala, dia e turno.")
+                _flash("warning", MSG_TROCA_INVALIDA)
             elif resultado == "duplicada":
-                _flash("warning", "Essa troca já foi registrada.")
+                _flash("warning", MSG_TROCA_DUPLICADA)
             else:
-                _flash("success", "A proposta de troca foi enviada para análise.")
-        _limpar_acao("inicio")
+                _flash("success", MSG_TROCA_SUCESSO)
+        navigate("inicio")
         st.rerun()
 
     if acao == "responder_troca" and st.session_state["tipo"] == "Professor":
         resultado = respond_to_exchange(
-            _param("id"), _param("resposta"), st.session_state["usuario"]
+            get_param("id"), get_param("resposta"), st.session_state["usuario"]
         )
         if resultado in ("aceita", "rejeitada"):
             _flash("success", "Troca atualizada com sucesso.")
@@ -157,19 +154,19 @@ def processar_acoes():
             _flash("error", "Somente o destinatário da proposta pode responder.")
         else:
             _flash("warning", "Essa proposta não está mais disponível.")
-        _limpar_acao("notificacoes")
+        navigate("notificacoes")
         st.rerun()
 
     if acao in ("aprovar", "rejeitar") and st.session_state["tipo"] in ("Administrador", "Coordenador", "Secretário"):
         novo_status = "Aprovado" if acao == "aprovar" else "Rejeitado"
         update_reservation_status(
-            _param("id"),
+            get_param("id"),
             novo_status,
             st.session_state["usuario"],
             st.session_state["tipo"],
         )
         _flash("success", "Status da reserva atualizado.")
-        _limpar_acao("admin")
+        navigate("admin")
         st.rerun()
 
 
@@ -180,16 +177,16 @@ if st.session_state.get("flash"):
     st.session_state["flash"] = None
 
 if not st.session_state["logged_in"]:
-    if _param("page") == "qr_login":
-        credencial = consume_login_token(_param("token"))
+    if get_param("page") == "qr_login":
+        credencial = consume_login_token(get_param("token"))
         if credencial:
             _finalizar_login(credencial)
         st.title("Acesso pelo QR Code")
         st.error(txt.MSG_QR_EXPIRADO)
         if st.button("Voltar para o login", icon=":material/login:"):
-            st.query_params.clear()
+            clear_query_params()
             st.rerun()
-    elif _param("page") == "registro":
+    elif get_param("page") == "registro":
         registro_view.render()
     else:
         col1, col2, col3 = st.columns([1, 2, 1])
@@ -207,8 +204,8 @@ if not st.session_state["logged_in"]:
                         else:
                             _finalizar_login(credencial)
                     else:
-                        st.error(txt.MSG_CREDENCIAIS_INVALIDAS)
-            st.caption("Cadastros disponíveis por convite | UniSapiens")
+                        st.error("Credenciais inválidas.")
+            st.caption(f"Cadastros disponíveis por convite | UniSapiens v{APP_VERSION}")
         credencial_pendente = st.session_state.get("login_pendente")
         if credencial_pendente:
             st.warning(txt.MSG_CONTA_JA_ONLINE)
@@ -219,8 +216,8 @@ if not st.session_state["logged_in"]:
                 st.session_state.pop("login_pendente", None)
                 st.rerun()
 else:
-    pagina = _param("page", "inicio")
-    predio = _param("predio")
+    pagina = get_param("page", "inicio")
+    predio = get_param("predio")
     tipo = st.session_state["tipo"]
 
     # Cada tipo de usuário vê uma tela diferente.
