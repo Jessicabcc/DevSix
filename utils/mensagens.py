@@ -63,3 +63,9 @@ MSG_SEM_FAVORITOS = "Você ainda não favoritou nenhuma sala."
 MSG_ADICIONE_FAVORITOS = "Adicione salas aos favoritos para encontrá-las rapidamente."
 MSG_NENHUMA_SALA_NO_MOMENTO = "Nenhuma sala cadastrada até o momento."
 MSG_NENHUMA_ALTERACAO_ESTRUTURAL = "Nenhuma alteração estrutural registrada."
+
+# ---------- Mensagens de exclusão ----------
+MSG_SALA_EXCLUIDA = "Sala {nome} excluída com sucesso."
+MSG_SALA_EXCLUSAO_FALHOU = "Não foi possível excluir a sala."
+MSG_PREDIO_EXCLUIDO = "Prédio {nome} excluído com sucesso."
+MSG_PREDIO_EXCLUSAO_FALHOU = "Não foi possível excluir o prédio."

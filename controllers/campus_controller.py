@@ -204,6 +204,92 @@ def alterar_status_sala(id_sala, acao, usuario, tipo):
     registrar_historico(acao_historico, f"Sala '{nome}' ficou {novo_status.lower()}", usuario, tipo)
     return True
 
+def excluir_sala(id_sala, usuario, tipo):
+    if tipo != "Administrador":
+        return False
+
+    salas = get_data("salas")
+    alvo = salas["id_sala"].astype(str) == str(id_sala)
+
+    if not alvo.any():
+        return False
+
+    sala = salas.loc[alvo].iloc[0]
+    nome_sala = str(sala["nome_sala"])
+    predio_id = str(sala["predio"])
+
+    predios = get_data("predios")
+    predio_nome = predio_id
+
+    predio = predios[predios["id_predio"].astype(str) == predio_id]
+    if not predio.empty:
+        predio_nome = str(predio.iloc[0]["nome"])
+
+    favoritos = get_data("favoritos")
+    if not favoritos.empty:
+        favoritos = favoritos[
+            favoritos["id_sala"].astype(str) != str(id_sala)
+        ]
+        save_data("favoritos", favoritos)
+
+    salas = salas[~alvo]
+    save_data("salas", salas)
+
+    registrar_historico(
+        "Sala excluída",
+        f"Sala '{nome_sala}' excluída do prédio '{predio_nome}'",
+        usuario,
+        tipo,
+    )
+
+    return True
+
+
+def excluir_predio(id_predio, usuario, tipo):
+    if tipo != "Administrador":
+        return False
+
+    predios = get_data("predios")
+    alvo = predios["id_predio"].astype(str) == str(id_predio)
+
+    if not alvo.any():
+        return False
+
+    predio = predios.loc[alvo].iloc[0]
+    nome_predio = str(predio["nome"])
+
+    salas = get_data("salas")
+    salas_predio = salas[
+        salas["predio"].astype(str) == str(id_predio)
+    ]
+
+    ids_salas = set(salas_predio["id_sala"].astype(str))
+
+    favoritos = get_data("favoritos")
+    if not favoritos.empty and ids_salas:
+        favoritos = favoritos[
+            ~favoritos["id_sala"].astype(str).isin(ids_salas)
+        ]
+        save_data("favoritos", favoritos)
+
+    if not salas_predio.empty:
+        salas = salas[
+            salas["predio"].astype(str) != str(id_predio)
+        ]
+        save_data("salas", salas)
+
+    predios = predios[~alvo]
+    save_data("predios", predios)
+
+    registrar_historico(
+        "Prédio excluído",
+        f"Prédio '{nome_predio}' excluído do sistema "
+        f"com {len(salas_predio)} sala(s) removida(s)",
+        usuario,
+        tipo,
+    )
+
+    return True
 
 def favoritos_do_usuario(usuario):
     favoritos = get_data("favoritos")

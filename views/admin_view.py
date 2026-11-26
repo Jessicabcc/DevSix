@@ -14,6 +14,8 @@ from controllers.campus_controller import (
     calcular_metricas,
     criar_predio,
     criar_sala,
+    excluir_predio,
+    excluir_sala,
     listar_predios,
     ranking_ocupacao,
     reservas_enriquecidas,
@@ -226,7 +228,38 @@ def _formularios_admin(reservas_pendentes):
                 st.rerun()
             st.error(txt.MSG_PREDIO_INVALIDO)
         if tab_predios.open:
-            st.dataframe(get_data("predios"), hide_index=True)
+            df_predios = get_data("predios")
+
+            if df_predios.empty:
+                st.info("Nenhum prédio cadastrado.")
+            else:
+                for _, predio in df_predios.iterrows():
+                    col_predio, col_excluir = st.columns([5, 1])
+
+                    col_predio.write(
+                        f"{predio['emoji']} {predio['nome']}"
+                    )
+
+                    if tipo == "Administrador":
+                        if col_excluir.button(
+                            "Excluir",
+                            key=f"excluir_predio_{predio['id_predio']}",
+                        ):
+                            if excluir_predio(
+                                predio["id_predio"],
+                                usuario,
+                                tipo,
+                            ):
+                                st.success(
+                                    txt.MSG_PREDIO_EXCLUIDO.format(
+                                        nome=predio["nome"]
+                                    )
+                                )
+                                st.rerun()
+                            else:
+                                st.error(
+                                    txt.MSG_PREDIO_EXCLUSAO_FALHOU
+                                )
 
     with tab_relatorio:
         if tab_relatorio.open:
@@ -240,35 +273,84 @@ def _formularios_admin(reservas_pendentes):
                 icon=":material/download:",
             )
 
-    with tab_gerenciar:
-        st.subheader("Status das salas")
-        df_salas = get_data("salas") if tab_gerenciar.open else None
-        if df_salas is not None and not df_salas.empty:
-            predios = get_data("predios")
-            mapa_predios = dict(zip(predios["id_predio"], predios["nome"]))
-            for _, sala in df_salas.iterrows():
-                nome_predio = mapa_predios.get(sala["predio"], sala["predio"])
-                col_sala, col_estado, col_acao = st.columns([4, 2, 1])
-                col_sala.write(f"{sala['nome_sala']} | {nome_predio}")
-                col_estado.write(str(sala["status"]))
-                if tipo == "Administrador":
-                    acao = "desbloquear" if sala["status"] == "Bloqueada" else "bloquear"
-                    if col_acao.button(
-                        "Liberar" if acao == "desbloquear" else "Bloquear",
-                        key=f"status_sala_{sala['id_sala']}",
-                    ):
-                        alterar_status_sala(sala["id_sala"], acao, usuario, tipo)
-                        st.rerun()
-        elif tab_gerenciar.open:
-            st.info(txt.MSG_NENHUMA_SALA)
+        with tab_gerenciar:
+            st.subheader("Status das salas")
+            df_salas = get_data("salas") if tab_gerenciar.open else None
 
-        st.subheader("Histórico de alterações")
-        if tab_gerenciar.open:
-            historico = get_data("historico_alteracoes")
-            if historico.empty:
-                st.info("Nenhuma alteração registrada.")
+            if df_salas is not None and not df_salas.empty:
+                predios = get_data("predios")
+                mapa_predios = dict(zip(predios["id_predio"], predios["nome"]))
+
+                for _, sala in df_salas.iterrows():
+                    nome_predio = mapa_predios.get(
+                        sala["predio"],
+                        sala["predio"]
+                    )
+
+                    col_sala, col_estado, col_acao = st.columns([4, 2, 1])
+
+                    col_sala.write(
+                        f"{sala['nome_sala']} | {nome_predio}"
+                    )
+
+                    col_estado.write(str(sala["status"]))
+
+                    if tipo == "Administrador":
+                        acao = (
+                            "desbloquear"
+                            if sala["status"] == "Bloqueada"
+                            else "bloquear"
+                        )
+
+                        if col_acao.button(
+                            "Liberar" if acao == "desbloquear" else "Bloquear",
+                            key=f"status_sala_{sala['id_sala']}",
+                        ):
+                            alterar_status_sala(
+                                sala["id_sala"],
+                                acao,
+                                usuario,
+                                tipo,
+                            )
+                            st.rerun()
+
+                        if st.button(
+                            "Excluir",
+                            key=f"excluir_sala_{sala['id_sala']}",
+                            type="secondary",
+                        ):
+                            if excluir_sala(
+                                sala["id_sala"],
+                                usuario,
+                                tipo,
+                            ):
+                                st.success(
+                                    txt.MSG_SALA_EXCLUIDA.format(
+                                        nome=sala["nome_sala"]
+                                    )
+                                )
+                                st.rerun()
+                            else:
+                                st.error(
+                                    txt.MSG_SALA_EXCLUSAO_FALHOU
+                                )
+
             else:
-                st.dataframe(historico.iloc[::-1], hide_index=True)
+                if tab_gerenciar.open:
+                    st.info(txt.MSG_NENHUMA_SALA)
+
+            st.subheader("Histórico de alterações")
+
+            if tab_gerenciar.open:
+                historico = get_data("historico_alteracoes")
+
+                if historico.empty:
+                    st.info("Nenhuma alteração registrada.")
+                else:
+                    st.dataframe(
+                        historico.iloc[::-1],
+                        hide_index=True
+                    )
 
 
 def _gerar_relatorio_pdf():
