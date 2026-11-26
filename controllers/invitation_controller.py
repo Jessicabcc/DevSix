@@ -5,6 +5,7 @@ import pandas as pd
 
 from models.db_manager import get_data, registrar_historico, save_data, add_user
 
+from utils.email_utils import is_valid_email
 
 PAPEIS_CONVITE = ("Professor", "Coordenador", "Administrador", "Secretário")
 
@@ -53,7 +54,7 @@ def register_with_invitation(token, nome, email, senha):
     if estado != "valido":
         return False, estado
     email = str(email or "").strip().casefold()
-    if not nome.strip() or not email or "@" not in email or not senha:
+    if not nome.strip() or not is_valid_email(email) or not senha:
         return False, "campos"
     if not add_user(nome, senha, convite["tipo_conta"], convite.get("criado_por"), email=email):
         return False, "duplicado"

@@ -12,6 +12,7 @@ from models.firestore_store import (
 )
 from utils.firebase_utils import get_firestore_client
 
+from utils.email_utils import is_valid_email
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 DB_DIR = PROJECT_DIR / "assets" / "data"
@@ -266,6 +267,8 @@ def add_user(nome, senha, tipo, criado_por=None, email="", foto=""):
     email = str(email or "").strip().casefold()
     tipos_validos = ("Professor", "Secretário", "Coordenador", "Administrador")
     if not nome or not senha or tipo not in tipos_validos:
+        return False
+    if email and not is_valid_email(email):
         return False
     if df["nome"].str.strip().str.casefold().eq(nome.casefold()).any():
         return False
